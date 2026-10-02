@@ -1,4 +1,4 @@
-# GTA San Anskateas
+# GTA San AnSkateas
 
 Skate 3 skating inside GTA San Andreas. Press **J** (or **L3 + R3** on a
 controller) and CJ gets on a skateboard driven by the Skate 3 engine, riding
