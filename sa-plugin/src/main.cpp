@@ -204,6 +204,7 @@ struct Skate {
     bool padChecked = false;
     ULONGLONG hitsFrom = 0;   // car hits are ignored until then (see CheckCarHits)
     int hits = 0;             // car hits so far
+    ULONGLONG recoveredAt = 0; // last engine-error recovery (see RecoverEngine)
     // A car he's going over carries on under him until then (game time, ms).
     CVehicle* underCar = nullptr;
     CVector underSpeed;       // as m_vecMoveSpeed
@@ -318,7 +319,23 @@ struct World {
     ULONGLONG refreshAt = 0;
     std::vector<std::pair<CVehicle*, CVector>> cars; // in that world, and where they were
     ULONGLONG carsCheckAt = 0;
+    ULONGLONG carsRebuildAt = 0; // cars may trigger a rebuild again from then
+    uint64_t hash = 0;           // of the triangles last handed to Skate
 } g_world;
+
+// Car changes only matter this close to the skater (m), and rebuild his world
+// at most this often (ms): cars creeping up to a light, or moving off far
+// away, rebuilt it every quarter second.
+constexpr float kCarWatchRange = 25.f;
+constexpr ULONGLONG kCarRebuildMs = 1000;
+
+// FNV-1a over a gather, to skip handing Skate the same world again.
+uint64_t HashTris(const std::vector<float>& tris) {
+    uint64_t h = 14695981039346656037ull;
+    const auto* p = reinterpret_cast<const unsigned char*>(tris.data());
+    for (size_t i = 0, n = tris.size() * sizeof(float); i < n; i++) h = (h ^ p[i]) * 1099511628211ull;
+    return h;
+}
 
 // Cars slower than this (5 mph) are part of Skate's world, so riding into one
 // is Skate's own collision; faster ones knock him off (see CheckCarHits).
@@ -464,11 +481,18 @@ void QueueWorld(const CVector& centre, float skaterZ) {
     int entities = GatherWorld(centre, skaterZ, g_cfg.worldRadius, g_world.tris);
     g_world.refreshAt = started + static_cast<ULONGLONG>(g_cfg.worldRefresh * 1000.f);
     if (g_world.tris.size() < 9) return; // nothing streamed in here yet: keep the current world
+    uint64_t hash = HashTris(g_world.tris);
+    if (hash == g_world.hash) { // the same world again: nothing to build
+        g_world.centre = centre;
+        g_world.cars = g_gatheredCars;
+        return;
+    }
     int generation = g_api.queue_world(g_session, g_world.tris.data(), static_cast<uint32_t>(g_world.tris.size() / 9));
     if (!Check(generation, "sk_queue_world")) return;
     g_world.pending = generation;
     g_world.centre = centre;
     g_world.cars = g_gatheredCars;
+    g_world.hash = hash;
     Log("World %d queued around %.0f %.0f %.0f: %d entities (%d not streamed in), %zu triangles, gathered in %llu ms",
         generation, centre.x, centre.y, centre.z, entities, g_unloaded, g_world.tris.size() / 9, GetTickCount64() - started);
 }
@@ -495,11 +519,13 @@ bool InstallWorldAt(const CVector& centre, float skaterZ) {
                 generation, centre.x, centre.y, centre.z, entities, g_unloaded, info.triangles, info.rails,
                 GetTickCount64() - started);
             g_world.cars = g_gatheredCars;
+            g_world.hash = HashTris(g_world.tris);
             return true;
         }
     }
     Log("No San Andreas collision loaded here (%d entities); using a flat floor", entities);
     g_world.cars.clear();
+    g_world.hash = 0;
     return InstallFloor(centre);
 }
 
@@ -509,7 +535,7 @@ bool InstallWorldAt(const CVector& centre, float skaterZ) {
 // are and a car that drove off leaves nothing behind.
 bool CarsChanged(const CVector& skater) {
     if (!g_cfg.parkedCarsCollide || !CPools::ms_pVehiclePool) return false;
-    const float range = g_cfg.worldRadius * 0.7f; // ("near" is a Windows macro)
+    const float range = std::fmin(kCarWatchRange, g_cfg.worldRadius * 0.7f); // ("near" is a Windows macro)
     std::vector<bool> seen(g_world.cars.size(), false);
     for (int i = 0; i < CPools::ms_pVehiclePool->m_nSize; i++) {
         CVehicle* car = CPools::ms_pVehiclePool->GetAt(i);
@@ -519,7 +545,7 @@ bool CarsChanged(const CVector& skater) {
         auto known = std::find_if(g_world.cars.begin(), g_world.cars.end(), [car](const auto& c) { return c.first == car; });
         if (known != g_world.cars.end()) {
             seen[known - g_world.cars.begin()] = true;
-            if (!slow || (at - known->second).Magnitude() > 0.4f) return true;
+            if ((!slow || (at - known->second).Magnitude() > 0.4f) && (at - skater).Magnitude() < range) return true;
         } else if (slow && car->bUsesCollision && (at - skater).Magnitude() < range) {
             return true;
         }
@@ -570,11 +596,12 @@ void StreamWorld() {
     float dx = ahead.x - g_world.centre.x, dy = ahead.y - g_world.centre.y;
     ULONGLONG now = GetTickCount64();
     bool carsChanged = false;
-    if (now >= g_world.carsCheckAt) {
+    if (now >= g_world.carsCheckAt && now >= g_world.carsRebuildAt) {
         g_world.carsCheckAt = now + 250;
         carsChanged = CarsChanged(skater);
     }
     if (std::sqrt(dx * dx + dy * dy) < g_cfg.worldRebuild && now < g_world.refreshAt && !carsChanged) return;
+    g_world.carsRebuildAt = now + kCarRebuildMs;
     QueueWorld(ahead, skater.z);
 }
 
@@ -1306,6 +1333,32 @@ bool CarTouches(CVehicle* car, const CVector& feet, const CVector& relative, flo
     return false;
 }
 
+// After an engine error (it once went NaN mid-air), put the skater back on
+// the board where he was, with his speed, rather than ending the session. A
+// second error within kRecoverMs ends it.
+constexpr ULONGLONG kRecoverMs = 5000;
+bool RecoverEngine(CPlayerPed* ped) {
+    ULONGLONG now = GetTickCount64();
+    if (now < g_skate.recoveredAt + kRecoverMs) return false;
+    g_skate.recoveredAt = now;
+    const float* r = g_skate.pose.root;
+    const float* v = g_skate.pose.velocity;
+    float at[3] = {r[12], r[13], r[14] + 0.1f};
+    if (!std::isfinite(at[0] + at[1] + at[2])) {
+        CVector p = ped->GetPosition();
+        at[0] = p.x, at[1] = p.y, at[2] = p.z - g_cfg.feetOffset + 0.1f;
+    }
+    float velocity[3] = {0.f, 0.f, 0.f};
+    if (std::isfinite(v[0] + v[1] + v[2])) velocity[0] = v[0], velocity[1] = v[1], velocity[2] = v[2];
+    if (!Check(g_api.activate(g_session, at, ped->GetHeading() + kPi * 0.5f), "sk_activate") ||
+        !Check(g_api.set_velocity(g_session, velocity), "sk_set_velocity") ||
+        !Check(g_api.get_pose(g_session, &g_skate.pose), "sk_get_pose")) {
+        return false;
+    }
+    Log("Recovered from the engine error: skater put back on the board at %.1f %.1f %.1f", at[0], at[1], at[2]);
+    return true;
+}
+
 void CheckCarHits() {
     ULONGLONG now = GetTickCount64();
     CPlayerPed* ped = g_skate.ped;
@@ -1896,7 +1949,9 @@ void OnFrame() {
             BlockPlayerPad();
             float dt = CTimer::ms_fTimeStep / 50.f; // time step is in 50 fps frames
             int steps = g_test.enabled ? TestStep() : g_api.update(g_session, dt);
-            if (!Check(steps, "sk_update") || (steps > 0 && !Check(g_api.get_pose(g_session, &g_skate.pose), "sk_get_pose"))) {
+            bool failed = !Check(steps, "sk_update") || (steps > 0 && !Check(g_api.get_pose(g_session, &g_skate.pose), "sk_get_pose"));
+            if (failed && RecoverEngine(ped)) failed = false;
+            if (failed) {
                 Stop("the Skate engine reported an error", true);
                 Message("Skate stopped after an engine error (see SanAnskateas.log).");
             } else {

@@ -67,6 +67,7 @@ pub fn update_known_air_roots(
         roots.heading_alignment =
             orthonormalize(compose_affine(&roots.heading_alignment, &rotation));
     }
+    let previous = (roots.animation_to_world, roots.world_to_animation);
     let mut world = compose_affine(reckoning, &roots.heading_alignment);
     //82BDEB98..BB8: rotate COM without adding the prior translation.
     world[3] = std::array::from_fn(|lane| {
@@ -76,6 +77,25 @@ pub fn update_known_air_roots(
     });
     roots.animation_to_world = orthonormalize(world);
     roots.world_to_animation = inverse_rigid(&roots.animation_to_world);
+    // SanAnskateas addition: a degenerate reckoning (or a heading alignment
+    // taken from one) made this frame NaN mid-air, which spread to the COM
+    // frames and stopped the engine ("Non-finite torque_acceleration" in
+    // KnownAir after an ollie). Keep the last good frame, moved to the target,
+    // and take the heading again next update.
+    let finite = |m: &Transform| m.iter().flatten().all(|v| v.is_finite());
+    if !finite(&roots.animation_to_world) || !finite(&roots.world_to_animation) {
+        roots.heading_alignment = IDENTITY;
+        roots.initialize_heading = true;
+        let mut keep = if finite(&previous.0) { previous.0 } else { IDENTITY };
+        keep[3] = std::array::from_fn(|lane| {
+            let x = keep[0][lane] * animation_com[0];
+            let y = keep[1][lane].mul_add(animation_com[1], x);
+            target_com[lane] - keep[2][lane].mul_add(animation_com[2], y)
+        });
+        keep[3][3] = 0.0;
+        roots.animation_to_world = keep;
+        roots.world_to_animation = inverse_rigid(&keep);
+    }
 }
 
 ///82BDE634..6DC. ApplyBoardAnimation follows before the completion below.
