@@ -12,11 +12,11 @@ own copies of both games.
 
 1. **Get GTA San Andreas ready (one time).** The mod needs the classic PC game
    (not the Definitive Edition) at version 1.0 US with an ASI Loader. Download
-   [GTA SA Open Downgrader](https://github.com/xxanqw/gtasa-open-downgrader/releases) and 
-   place the exe in your root game directory, check all the tick boxes, and click downgrade
-   : downgrade it, and install **ASI Loader & ModLoader** from its mod list
-   (the only mod needed; the rest are optional). Do this yourself first: Setup
-   doesn't run the downgrader, but it warns you if you skipped it.
+   [GTA SA Open Downgrader](https://github.com/xxanqw/gtasa-open-downgrader/releases),
+   place the exe in your game folder (the one with `gta_sa.exe`) and run it.
+   Check all the tick boxes and click **Downgrade**. **ASI Loader & ModLoader**
+   is the only mod the skating needs; the rest are optional. Do this yourself
+   first: Setup doesn't run the downgrader, but it warns you if you skipped it.
 2. **Get your Skate 3 files (one time).** Skate 3 for Xbox 360, extracted to a
    folder with `default.xex` and `data` in it: from your disc's ISO with
    [extract-xiso](https://github.com/XboxDev/extract-xiso)
