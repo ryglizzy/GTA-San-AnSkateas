@@ -28,6 +28,9 @@ own copies of both games.
 
 The zip's `README.txt` has the same steps in more detail, plus troubleshooting.
 
+**Black screen after Alt+Tab?** Download [DXVK 3.1.1](https://github.com/doitsujin/DXVK),
+open its `x32` folder and drop `d3d9.dll` into your game folder (next to `gta_sa.exe`).
+
 ## Repository layout
 
 | Folder | What |
