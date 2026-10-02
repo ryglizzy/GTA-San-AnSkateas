@@ -1,0 +1,23 @@
+# Long drop: off the roof of the tallest tower in downtown Los Santos (helipad
+# roof at z 328.5, a low wall round its edge) on the board. Skate's 5 s air
+# reset must wait while there is ground below: he has to reach the street
+# (the log must not say "left his world" again once he's falling).
+load 2
+place 1540 -1352 328.6 10    # on the roof, facing north (slightly west)
+clock 12 0
+weather 1
+wait 120
+skate
+idle 60
+respawn 1535 -1328 331 10    # just past the north edge, in the air
+idle 120
+shoot falling-2s angles=180,60 dist=5 target=1
+idle 210
+shoot falling-5s angles=180,60 dist=5 target=1
+idle 120
+shoot falling-7s angles=180,60 dist=5 target=1
+idle 150
+shoot bottom angles=180,60 dist=6 target=0.5
+idle 240
+shoot after angles=180,60 dist=6 target=0.5
+quit

@@ -1,0 +1,54 @@
+﻿# Arms check: CJ on foot for reference, then riding, pushing, an ollie,
+# a kickflip and running off the board, photographed from the side and back.
+# Run: gta-sa.exe -sktest "<this file>"  (see CLAUDE.md, Testing)
+load 2
+place 2050 -2494 13.6 90     # LS airport runway (ground 12.55), facing west along it
+clock 12 0
+weather 1
+tuning 0.5 0.5
+wait 90
+shoot standing angles=0,90,180,270
+skate
+idle 90
+shoot riding angles=0,45,90,180,270,315
+# pushing
+pad 15 A
+idle 15
+pad 15 A
+idle 6
+shoot push-a angles=90,180,270
+idle 6
+shoot push-b angles=90,180,270
+idle 6
+shoot push-c angles=90,180,270
+# an ollie
+idle 60
+pad 30 rs=0,-1
+pad 3 rs=0,1
+idle 8
+shoot ollie-a angles=90,180,270
+idle 8
+shoot ollie-b angles=90,180,270
+# a kickflip
+idle 90
+pad 30 rs=0,-1
+pad 3 rs=-1,0.5
+idle 6
+shoot kickflip-a angles=90,180,270
+idle 6
+shoot kickflip-b angles=90,180,270
+idle 6
+shoot kickflip-c angles=90,180,270
+idle 90
+# off the board, running
+pad 5 Y
+idle 30
+pad 30 ls=0,1
+shoot run-a angles=90,180,270
+pad 8 ls=0,1
+shoot run-b angles=90,180,270
+pad 8 ls=0,1
+shoot run-c angles=90,180,270
+pad 8 ls=0,1
+shoot run-d angles=90,180,270
+quit

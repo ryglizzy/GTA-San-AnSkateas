@@ -1,0 +1,42 @@
+# The board in CJ's hands: grabs in the air (right trigger, then left), then
+# off the board carrying it, standing and running, with close-ups of the hand,
+# then walking other ways (to catch the left hand carrying it).
+load 2
+place 2050 -2494 13.6 90     # LS airport runway, facing west
+clock 12 0
+weather 1
+wait 90
+skate
+idle 60
+pad 15 A
+idle 30
+pad 30 rs=0,-1
+pad 3 rs=0,1
+idle 5
+pad 24 rt=1
+shoot grab-right angles=45,135,225,315 dist=2.3 target=0.9
+shoot grab-right-hand angles=0,90,180,270 dist=0.7 aim=24
+idle 120
+pad 30 rs=0,-1
+pad 3 rs=0,1
+idle 5
+pad 21 lt=1
+shoot grab-left angles=45,135,225,315 dist=2.3 target=0.9
+shoot grab-left-hand angles=0,90,180,270 dist=0.7 aim=34
+idle 120
+pad 5 Y
+idle 90
+shoot carry-hand angles=0,90,180,270 dist=0.55 aim=24
+pad 40 ls=0,1 A
+shoot carry-run angles=0,90,180,270 dist=2.2 target=0.9
+pad 12 ls=0,1 A
+shoot carry-run-hand angles=0,90,180,270 dist=0.55 aim=24
+pad 40 ls=-1,0
+shoot walk-left angles=0,180 dist=2.2 target=0.9
+pad 40 ls=0,-1
+shoot walk-back angles=0,180 dist=2.2 target=0.9
+pad 40 ls=1,0
+shoot walk-right angles=0,180 dist=2.2 target=0.9
+idle 300
+shoot stand-long angles=0,180 dist=2.2 target=0.9
+quit

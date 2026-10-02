@@ -1,0 +1,7 @@
+[build]
+# GTA San Andreas is a 32-bit game, so the DLL it loads must be 32-bit too.
+target = "i686-pc-windows-msvc"
+
+[target.i686-pc-windows-msvc]
+# Bake the C runtime into the DLL so players don't need the VC++ redistributable.
+rustflags = ["-C", "target-feature=+crt-static"]

@@ -1,0 +1,36 @@
+# Arms in the air: one frozen kickflip frame, photographed close up with
+# different shoulder settings (no engine steps between those shots), then
+# pushing and running to check they still look right.
+load 2
+place 2050 -2494 13.6 90     # LS airport runway, facing west
+clock 12 0
+weather 1
+tuning 0.5 0.5
+wait 90
+skate
+idle 60
+pad 15 A
+idle 30
+pad 30 rs=0,-1
+pad 3 rs=-1,0.5
+idle 12
+env SK_HELPER 0
+shoot helper0 angles=45,225,315 dist=2.2 target=1.3 fov=40
+env SK_HELPER 0.5
+shoot helper05 angles=45,225,315 dist=2.2 target=1.3 fov=40
+env SK_HELPER 1
+shoot helper1 angles=45,225,315 dist=2.2 target=1.3 fov=40
+env SK_HELPER 0.5
+env SK_SHOULDER_LIFT 0.6
+shoot helper05-lift06 angles=45,225,315 dist=2.2 target=1.3 fov=40
+env SK_SHOULDER_LIFT 0.3
+idle 90
+pad 15 A
+idle 6
+shoot push angles=90,180,270
+idle 60
+pad 5 Y
+idle 30
+pad 38 ls=0,1
+shoot run angles=90,180,270
+quit

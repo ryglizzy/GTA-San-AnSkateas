@@ -1,0 +1,22 @@
+# The board carried left-handed: after a 180 ollie the skater rides fakie,
+# and stepping off then takes the board in the left hand. Close-ups of it.
+load 2
+place 2050 -2494 13.6 90     # LS airport runway, facing west
+clock 12 0
+weather 1
+wait 90
+skate
+idle 60
+pad 20 A
+idle 20
+pad 30 rs=0,-1 ls=-1,0
+pad 3 rs=0,1 ls=-1,0
+pad 40 ls=-1,0
+idle 60
+pad 5 Y
+idle 90
+shoot left-hand angles=0,90,180,270 dist=0.4 aim=34
+shoot left-carry angles=0,90,180,270 dist=2.0 target=0.9
+pad 40 ls=0,1 A
+shoot left-run angles=0,90,180,270 dist=2.2 target=0.9
+quit

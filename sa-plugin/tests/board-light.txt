@@ -1,0 +1,32 @@
+# The board's lighting against CJ's at noon, dusk and night, at three
+# brightness settings (columns: 0.7, 0.5, 0.35).
+load 2
+place 2050 -2494 13.6 90     # LS airport runway, facing west
+clock 12 0
+weather 1
+wait 90
+skate
+idle 90
+env SK_BOARD_BRIGHTNESS 0.7
+shoot noon-070 angles=60 dist=2.2 target=0.5
+env SK_BOARD_BRIGHTNESS 0.5
+shoot noon-050 angles=60 dist=2.2 target=0.5
+env SK_BOARD_BRIGHTNESS 0.35
+shoot noon-035 angles=60 dist=2.2 target=0.5
+clock 20 30
+wait 10
+env SK_BOARD_BRIGHTNESS 0.7
+shoot dusk-070 angles=60 dist=2.2 target=0.5
+env SK_BOARD_BRIGHTNESS 0.5
+shoot dusk-050 angles=60 dist=2.2 target=0.5
+env SK_BOARD_BRIGHTNESS 0.35
+shoot dusk-035 angles=60 dist=2.2 target=0.5
+clock 1 0
+wait 10
+env SK_BOARD_BRIGHTNESS 0.7
+shoot night-070 angles=60 dist=2.2 target=0.5
+env SK_BOARD_BRIGHTNESS 0.5
+shoot night-050 angles=60 dist=2.2 target=0.5
+env SK_BOARD_BRIGHTNESS 0.35
+shoot night-035 angles=60 dist=2.2 target=0.5
+quit

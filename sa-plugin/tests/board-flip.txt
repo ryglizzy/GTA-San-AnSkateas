@@ -1,0 +1,21 @@
+# The board mid-kickflip, a few frames apart, seen from the side.
+load 2
+place 2050 -2494 13.6 90
+clock 12 0
+weather 1
+wait 90
+skate
+idle 60
+pad 15 A
+idle 30
+pad 30 rs=0,-1
+pad 3 rs=-1,0.5
+idle 14
+shoot flip-14 angles=90,180 dist=2.4 target=0.9
+idle 5
+shoot flip-19 angles=90,180 dist=2.4 target=0.9
+idle 5
+shoot flip-24 angles=90,180 dist=2.4 target=0.9
+idle 5
+shoot flip-29 angles=90,180 dist=2.4 target=0.9
+quit

@@ -1,0 +1,17 @@
+# A car hits the skater while he walks with the board (off it), then Skate's
+# respawn.
+load 2
+place 2050 -2494 13.6 90     # LS airport runway, facing west
+clock 12 0
+weather 1
+wait 90
+skate
+idle 60
+pad 5 Y
+idle 90
+car 400 16 0 12
+idle 70
+shoot walking-hit angles=60,240 dist=4 target=0.8
+idle 360
+shoot walking-after angles=60,240 dist=4 target=0.8
+quit

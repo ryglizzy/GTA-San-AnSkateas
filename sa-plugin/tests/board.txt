@@ -1,0 +1,24 @@
+# The skateboard: riding, a close look at it, an ollie and a kickflip.
+load 2
+place 2050 -2494 13.6 90     # LS airport runway, facing west
+clock 12 0
+weather 1
+wait 90
+skate
+idle 90
+shoot riding angles=0,90,180,270 dist=2.6 target=0.7
+shoot board-close angles=30,120,210,300 dist=1.3 target=0.1 height=0.5
+pad 15 A
+idle 30
+pad 30 rs=0,-1
+pad 3 rs=0,1
+idle 10
+shoot ollie angles=90,180,270 dist=2.6 target=0.8
+idle 90
+pad 30 rs=0,-1
+pad 3 rs=-1,0.5
+idle 5
+shoot kickflip-a angles=90,180,270 dist=2.6 target=0.8
+idle 5
+shoot kickflip-b angles=90,180,270 dist=2.6 target=0.8
+quit

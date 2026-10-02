@@ -1,0 +1,23 @@
+[package]
+name = "skate-ffi"
+version = "0.1.0"
+edition = "2024"
+publish = false
+description = "C interface to the Skate 3 Rust engine, for hosting it inside other games"
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+skate-host = { path = "../mashup/skate/crates/skate-host" }
+bevy = { version = "0.19", default-features = false, features = ["std"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+half = "2.7"
+miniz_oxide = "0.9"
+
+[profile.release]
+lto = "thin"
+
+# Standalone: not part of the mashup's workspace.
+[workspace]

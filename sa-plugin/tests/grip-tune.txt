@@ -1,0 +1,22 @@
+# Seating the carried board in the right hand: one frozen frame, the board
+# moved toward the palm (+Y in the hand's axes; the built-in seat is
+# (0, -2, -0.7) cm and GRIP_* add to it). Front, inside and outside views.
+load 2
+place 2050 -2494 13.6 90     # LS airport runway, facing west
+clock 12 0
+weather 1
+wait 90
+skate
+idle 60
+pad 5 Y
+idle 90
+env SK_GRIP_Z 0.7
+env SK_GRIP_Y 3
+shoot y+1 angles=0,90,270 dist=0.4 aim=24
+env SK_GRIP_Y 4
+shoot y+2 angles=0,90,270 dist=0.4 aim=24
+env SK_GRIP_Y 5
+shoot y+3 angles=0,90,270 dist=0.4 aim=24
+env SK_GRIP_Y 6
+shoot y+4 angles=0,90,270 dist=0.4 aim=24
+quit

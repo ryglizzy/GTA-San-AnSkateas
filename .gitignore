@@ -1,0 +1,14 @@
+# Builds and caches
+skate-ffi/target/
+sa-plugin/build/
+release/dist/
+mashup/target/
+plugin-sdk/
+*.log
+*.zip
+
+# Game files: never commit these
+Skate 3 Game/
+skate-data/
+*.xex
+*.iso

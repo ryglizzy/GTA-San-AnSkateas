@@ -1,0 +1,54 @@
+# Car hits: riding into a stopped car (Skate's own collision, no knock), a
+# slow car (9 mph) running into the standing skater (thrown aside right at
+# contact), and a fast one (34 mph) he goes up over. Test cars hold their
+# speed until they hit. Photos pause the game's world too, so each is one
+# moment.
+load 2
+place 2050 -2494 13.6 90     # LS airport runway, facing west
+clock 12 0
+weather 1
+wait 90
+skate
+idle 60
+car 400 10 0 0               # stopped, 10 m ahead
+idle 60                      # the world takes it in
+pad 20 A
+idle 10
+pad 20 A
+idle 85
+shoot stopped-a angles=60,240 dist=4 target=0.8
+idle 12
+shoot stopped-b angles=60,240 dist=4 target=0.8
+idle 30
+shoot stopped-c angles=60,240 dist=4 target=0.8
+idle 120
+respawn 1990 -2494 13.6 90
+idle 90
+car 400 12 0 4               # slow: 4 m/s (9 mph)
+idle 130
+shoot slow-a angles=60,240 dist=4 target=0.8
+idle 10
+shoot slow-b angles=60,240 dist=4 target=0.8
+idle 15
+shoot slow-c angles=60,240 dist=4 target=0.8
+idle 30
+shoot slow-d angles=60,240 dist=5 target=0.8
+idle 200
+respawn 1930 -2494 13.6 90
+idle 90
+car 400 25 0 15              # fast: 15 m/s (34 mph)
+idle 84
+shoot fast-a angles=60,240 dist=5 target=1
+idle 8
+shoot fast-b angles=60,240 dist=5 target=1
+idle 12
+shoot fast-c angles=60,240 dist=5 target=1
+idle 15
+shoot fast-d angles=60,240 dist=5 target=1
+idle 18
+shoot fast-e angles=60,240 dist=5 target=1
+idle 30
+shoot fast-f angles=60,240 dist=6 target=1
+idle 40
+shoot fast-g angles=60,240 dist=7 target=0.5
+quit

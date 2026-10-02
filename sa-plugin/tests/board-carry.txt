@@ -1,0 +1,14 @@
+# The board carried in CJ's hand: off the board (Y), standing, then walking.
+load 2
+place 2050 -2494 13.6 90     # LS airport runway, facing west
+clock 12 0
+weather 1
+wait 90
+skate
+idle 60
+pad 5 Y
+idle 90
+shoot carry-stand angles=0,90,180,270 dist=2.0 target=0.9
+pad 30 ls=0,1
+shoot carry-walk angles=0,90,180,270 dist=2.0 target=0.9
+quit
