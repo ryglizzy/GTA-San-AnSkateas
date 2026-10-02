@@ -16,17 +16,16 @@ the Definitive Edition, which is a different game.
 
 1. Download GTA SA Open Downgrader (gtasa-open-downgrader-windows.exe):
    https://github.com/xxanqw/gtasa-open-downgrader/releases
-2. Run it. It finds your Steam copy (or pick the game folder yourself).
-3. Downgrade the game to 1.0 US.
-4. In its mod list, install "ASI Loader & ModLoader". That's the only one the
-   mod needs; the others (SilentPatch, widescreen fix, SkyGFX...) are optional
-   extras you can pick if you like them.
+2. Place the exe in your game folder (the one with gta_sa.exe) and run it.
+3. Check all the tick boxes and click Downgrade.
+4. "ASI Loader & ModLoader" is the only mod the skating needs; the others
+   (SilentPatch, widescreen fix, SkyGFX...) are optional extras.
 
 Do this yourself before Setup: Setup and build.cmd never run the downgrader.
 If you skip it, Setup notices and offers to open the downgrader's page.
 
-Already on 1.0 US (an old disc copy)? Only step 4 is needed: you can use the
-downgrader to install the ASI Loader on it too.
+Already on 1.0 US (an old disc copy)? You still need the ASI Loader: the
+downgrader can install it on that copy too.
 
 
 Step 2: Get your Skate 3 files (one time)
