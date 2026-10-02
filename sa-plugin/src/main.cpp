@@ -95,7 +95,7 @@ struct Config {
     std::wstring assetsDir;  // the converted skate-data\assets folder
     int toggleKey = 'J';
     bool padToggle = true;   // L3 + R3 also gets on and off
-    ULONGLONG comboWindowMs = 400; // how long a lone L3/R3 waits for the other stick
+    ULONGLONG comboWindowMs = 100; // how long a lone L3/R3 waits for the other stick
     float feetOffset = 1.0f; // a ped's position sits this far above its feet
     float floorSize = 400.f; // fallback floor when no collision is loaded, in metres
     float worldRadius = 60.f;       // San Andreas collision handed to Skate around the skater
@@ -134,7 +134,7 @@ void LoadConfig() {
     }
     g_cfg.toggleKey = GetPrivateProfileIntW(L"Skate", L"ToggleKey", 'J', ini.c_str());
     g_cfg.padToggle = GetPrivateProfileIntW(L"Skate", L"PadToggle", 1, ini.c_str()) != 0;
-    float window = IniFloat(ini.c_str(), L"ComboWindow", 0.4f);
+    float window = IniFloat(ini.c_str(), L"ComboWindow", 0.1f);
     g_cfg.comboWindowMs = static_cast<ULONGLONG>(std::fmin(std::fmax(window, 0.f), 2.f) * 1000.f);
     g_cfg.feetOffset = IniFloat(ini.c_str(), L"FeetOffset", 1.0f);
     GetPrivateProfileStringW(L"Skate", L"Difficulty", L"normal", buf, MAX_PATH, ini.c_str());
