@@ -10,8 +10,9 @@ of both games.
 
 What you need
 -------------
-- GTA San Andreas for PC, version 1.0 US (downgrade newer copies first, e.g.
-  with gta-sa-open-downgrader), with an ASI loader (Silent's ASI Loader).
+- GTA San Andreas for PC, version 1.0 US (downgrade newer copies first with
+  gtasa-open-downgrader: https://github.com/xxanqw/gtasa-open-downgrader),
+  with an ASI loader (Silent's ASI Loader).
 - Skate 3 for Xbox 360, extracted: its default.xex with the game's "data"
   folder beside it. From your disc's ISO use extract-xiso
   (extract-xiso -x "Skate 3.iso"); a Games on Demand copy can be extracted
@@ -35,11 +36,19 @@ folder from the game folder.
 
 Credits and licences
 --------------------
-- The Skate 3 engine and the converter (converter\iw4l-skate-convert.exe) come
-  from 2010 Rust Rewrite Mashup by chasmlol, a fork of IW4L by vladtrc
-  (Apache License 2.0; see licenses\). The converter bundles Python, NumPy,
-  Pillow, UTT and the Skate 3 Custom Engine Layer, whose licences are in
-  converter\licenses\.
-- Built with plugin-sdk by DK22Pac (MIT; see licenses\plugin-sdk-LICENSE).
-- Skate 3 is (c) Electronic Arts. GTA San Andreas is (c) Rockstar Games. This
-  mod is not affiliated with or endorsed by either.
+Major credits to these projects and their creators:
+- Skate engine: skate-3-rust-engine (https://github.com/SK8-ENGINE/skate-3-rust-engine),
+  as used in 2010 Rust Rewrite Mashup by chasmlol
+  (https://github.com/chasmlol/2010-rust-rewrite-mashup), a fork of IW4L by
+  vladtrc (Apache License 2.0; see licenses\). The converter
+  (converter\iw4l-skate-convert.exe) comes from the mashup and bundles Python,
+  NumPy, Pillow, UTT and the Skate 3 Custom Engine Layer, whose licences are
+  in converter\licenses\.
+- plugin-sdk by DK22Pac (https://github.com/DK22Pac/plugin-sdk, MIT; see
+  licenses\plugin-sdk-LICENSE.txt).
+- gta-reversed (https://github.com/gta-reversed/gta-reversed): reference for
+  how San Andreas works.
+- gtasa-open-downgrader (https://github.com/xxanqw/gtasa-open-downgrader).
+
+Unofficial fan project, not affiliated with EA or Rockstar Games. You need to
+own Skate 3 and GTA San Andreas.
