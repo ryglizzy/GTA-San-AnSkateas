@@ -15,7 +15,8 @@ call "%VCVARS%" x86 >nul || exit /b 1
 cl /nologo /W3 /Fe:%OUT%\smoke.exe /Fo:%OUT%\ tests-c\smoke.c %OUT%\skate_ffi.dll.lib /link /LARGEADDRESSAWARE || exit /b 1
 cl /nologo /W3 /Fe:%OUT%\push.exe /Fo:%OUT%\ tests-c\push.c %OUT%\skate_ffi.dll.lib /link /LARGEADDRESSAWARE || exit /b 1
 cl /nologo /W3 /Fe:%OUT%\knock.exe /Fo:%OUT%\ tests-c\knock.c %OUT%\skate_ffi.dll.lib /link /LARGEADDRESSAWARE || exit /b 1
-%OUT%\smoke.exe %1 || exit /b 1
+rem The offline checks need converted Skate data: build.cmd <skate-data\assets>
+if not "%~1"=="" %OUT%\smoke.exe %1 || exit /b 1
 rem build.cmd <skate-data\assets> push   also measures push speeds per difficulty
 rem build.cmd <skate-data\assets> knock  also traces a car-hit roll-over step by step
 if /i "%~2"=="push" %OUT%\push.exe %1

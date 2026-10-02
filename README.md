@@ -31,19 +31,30 @@ Get the latest zip from the **Releases** page and follow its `README.txt`. In sh
 
 ## Building from source
 
-Needs Windows, Visual Studio 2022 Build Tools (C++), and Rust with the
-`i686-pc-windows-msvc` target (`rustup target add i686-pc-windows-msvc`).
+**Just want to play? Skip this:** use the zip from the Releases page. This is
+only for people who want to change the code and compile the mod themselves
+(Windows only).
 
-1. Clone [plugin-sdk](https://github.com/DK22Pac/plugin-sdk) next to this
-   repository's folders as `plugin-sdk/` and build its San Andreas library
-   (`plugin-sdk/output/lib/Plugin.lib`) with its premake/Visual Studio projects.
-2. `skate-ffi\build.cmd` builds the DLL (pass your converted `skate-data\assets`
-   path to also run the offline checks).
-3. `sa-plugin\build.cmd` builds the ASI (`sa-plugin\build.cmd install` copies it
-   into the game; set `GAME` if your game isn't in the default Steam folder).
-4. `powershell -File release\make-dist.ps1` assembles the download in
-   `release\dist\`. It also needs the mashup's release build for its converter
-   (`iw4l-skate-convert.exe`); see the script.
+1. **Install two free tools** (one time):
+   - [Visual Studio Build Tools 2022](https://visualstudio.microsoft.com/visual-cpp-build-tools/).
+     In the installer, tick **Desktop development with C++**.
+   - [Rust](https://rustup.rs) (run `rustup-init.exe` and accept the defaults).
+2. **Download this project:** the green **Code** button, then **Download ZIP**, and unzip it.
+3. **Download [plugin-sdk](https://github.com/DK22Pac/plugin-sdk)** the same way and
+   unzip it inside this project's folder, renamed to `plugin-sdk` (so that
+   `plugin-sdk\plugin_sa` exists).
+4. **Double-click `build.cmd`.** The first run takes a while (it also builds
+   plugin-sdk). It ends with the two finished files:
+   `sa-plugin\build\SanAnskateas.asi` and
+   `skate-ffi\target\i686-pc-windows-msvc\release\skate_ffi.dll`.
+5. **To try it in your game:** run `sa-plugin\build.cmd install` (it assumes the
+   Steam folder; for another folder, first run `set GAME=C:\your\GTA folder` in
+   the same window). Run the release's `Setup.cmd` once beforehand to create
+   the Skate 3 data.
+
+For maintainers: `release\make-dist.ps1` packs the Releases zip. It needs the
+mashup's converter (`iw4l-skate-convert.exe`, from the mashup's own release),
+whose location is set at the top of the script.
 
 ## Credits
 
