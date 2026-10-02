@@ -12,7 +12,8 @@ own copies of both games.
 
 Get the latest zip from the **Releases** page and follow its `README.txt`. In short:
 
-1. GTA San Andreas for PC **version 1.0 US** (downgrade newer copies first)
+1. GTA San Andreas for PC **version 1.0 US** (downgrade newer copies first with
+   [gtasa-open-downgrader](https://github.com/xxanqw/gtasa-open-downgrader))
    with an ASI loader (Silent's ASI Loader).
 2. Skate 3 for **Xbox 360, extracted**: `default.xex` with its `data` folder
    (from your own disc via extract-xiso, or a Games on Demand copy via Velocity).
@@ -46,13 +47,15 @@ Needs Windows, Visual Studio 2022 Build Tools (C++), and Rust with the
 
 ## Credits
 
-- Skate engine and converter: **2010 Rust Rewrite Mashup** by chasmlol, a fork
-  of **IW4L** by vladtrc (Apache-2.0). Files changed here are marked
-  `SanAnskateas addition`; see `mashup/LICENSE` and `mashup/NOTICE`.
-  `skate-ffi/src/rails.rs` and `skate-ffi/src/board_export.rs` are adapted from
-  the same project.
-- **plugin-sdk** by DK22Pac and contributors (MIT).
+Major credits to these projects and their creators:
 
-Skate 3 is © Electronic Arts. Grand Theft Auto: San Andreas is © Rockstar
-Games. This is an unofficial fan project, not affiliated with or endorsed by
-either. You need to own both games.
+- Skate engine: [skate-3-rust-engine](https://github.com/SK8-ENGINE/skate-3-rust-engine),
+  as used in [2010 Rust Rewrite Mashup](https://github.com/chasmlol/2010-rust-rewrite-mashup)
+  by chasmlol, a fork of [IW4L](https://github.com/vladtrc/iw4L) by vladtrc
+  (Apache-2.0, see `mashup/`).
+- [plugin-sdk](https://github.com/DK22Pac/plugin-sdk) by DK22Pac (MIT): the base of the game plugin.
+- [gta-reversed](https://github.com/gta-reversed/gta-reversed): reference for how San Andreas works.
+- [gtasa-open-downgrader](https://github.com/xxanqw/gtasa-open-downgrader): gets San Andreas to 1.0 US.
+
+Unofficial fan project, not affiliated with EA or Rockstar Games. You need to
+own Skate 3 and GTA San Andreas.
