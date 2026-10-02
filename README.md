@@ -28,6 +28,9 @@ own copies of both games.
 
 The zip's `README.txt` has the same steps in more detail, plus troubleshooting.
 
+**Skating stops by itself or acts strange?** Press **Ctrl + J** to restart the Skate
+engine (about 10 seconds), no need to restart the game.
+
 **Black screen after Alt+Tab?** Download [DXVK 3.1.1](https://github.com/doitsujin/DXVK),
 open its `x32` folder and drop `d3d9.dll` into your game folder (next to `gta_sa.exe`).
 

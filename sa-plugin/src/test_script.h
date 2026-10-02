@@ -9,6 +9,8 @@
 //   tuning 0.5 0.5            ArmElbowFollow ShoulderFollow
 //   wait 60                   game frames, e.g. for streaming
 //   skate / unskate           get on / off the board
+//   restart                   restart the Skate engine (as Ctrl + J does); the
+//                             next command waits until it's ready again
 //   respawn x y z deg         the skater is put there as Skate's respawn does
 //                             (no world built for him first)
 //   car 400 15 0 12           a driverless car of that model 15 m ahead of the
@@ -33,7 +35,7 @@
 #include <vector>
 
 struct TestCommand {
-    enum class Kind { Load, Place, Clock, Weather, Tuning, Wait, Skate, Unskate, Respawn, Car, Pad, Shoot, Env, Quit };
+    enum class Kind { Load, Place, Clock, Weather, Tuning, Wait, Skate, Unskate, Restart, Respawn, Car, Pad, Shoot, Env, Quit };
     Kind kind = Kind::Quit;
     int line = 0;
     int count = 0;       // Load: slot; Wait: frames; Pad: engine steps
@@ -156,8 +158,8 @@ inline bool ParseTestScript(const std::string& text, std::vector<TestCommand>& o
         } else if (verb == "wait") {
             c.kind = Kind::Wait;
             if (!steps() || w.size() != 2) return fail("wait takes a number of frames");
-        } else if (verb == "skate" || verb == "unskate" || verb == "quit") {
-            c.kind = verb == "skate" ? Kind::Skate : verb == "unskate" ? Kind::Unskate : Kind::Quit;
+        } else if (verb == "skate" || verb == "unskate" || verb == "restart" || verb == "quit") {
+            c.kind = verb == "skate" ? Kind::Skate : verb == "unskate" ? Kind::Unskate : verb == "restart" ? Kind::Restart : Kind::Quit;
             if (w.size() != 1) return fail(verb + " takes nothing");
         } else if (verb == "idle" || verb == "pad") {
             c.kind = Kind::Pad;

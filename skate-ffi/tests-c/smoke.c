@@ -298,6 +298,34 @@ int main(int argc, char** argv) {
                info.generation, info.failures);
         memory("after worlds");
     }
-    sk_session_free(s);
+    /* Restart (the plugin's Ctrl + J): free the engine and load it again, a
+     * few times. Each load must work and the memory must come back, or a
+     * 32-bit game runs out of room after a few restarts. */
+    {
+        MEMORYSTATUSEX ms = {sizeof(ms)};
+        double base, now;
+        sk_session_free(s);
+        memory("after free");
+        GlobalMemoryStatusEx(&ms);
+        base = (ms.ullTotalVirtual - ms.ullAvailVirtual) / 1048576.0;
+        for (i = 1; i <= 3; i++) {
+            t = now_ms();
+            s = sk_session_new(assets, floor, 2, NULL, NULL, 0, 1.0f);
+            if (!s || sk_activate(s, spawn, 0.0f) != 0 || sk_step(s, &idle) < 0) {
+                printf("restart %d failed: %s\n", i, sk_last_error());
+                return 1;
+            }
+            printf("restart %d: engine loaded again in %.0f ms\n", i, now_ms() - t);
+            sk_session_free(s);
+        }
+        GlobalMemoryStatusEx(&ms);
+        now = (ms.ullTotalVirtual - ms.ullAvailVirtual) / 1048576.0;
+        memory("after 3 more");
+        printf("restart: address space %+.0f MB after 3 restarts\n", now - base);
+        if (now - base > 64) {
+            printf("restart: memory isn't coming back\n");
+            return 1;
+        }
+    }
     return 0;
 }

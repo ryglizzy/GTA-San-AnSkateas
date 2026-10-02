@@ -70,6 +70,8 @@ If something's wrong
   is missing. Redo step 1.
 - "Skate 3 failed to load": run Setup.cmd again and pick default.xex.
 - "No Xbox controller found": connect it (or start DS4Windows) before playing.
+- Skating stops by itself or acts strange: press Ctrl + J to restart the
+  Skate engine (about 10 seconds). No need to restart the game.
 - Black screen after Alt+Tab: download DXVK 3.1.1
   (https://github.com/doitsujin/DXVK), open its x32 folder and drop
   d3d9.dll into your GTA San Andreas folder (next to gta_sa.exe).

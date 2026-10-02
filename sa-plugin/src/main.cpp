@@ -1359,6 +1359,38 @@ bool RecoverEngine(CPlayerPed* ped) {
     return true;
 }
 
+// Ctrl + the toggle key: restart the Skate engine without restarting the game,
+// for when it misbehaves. Skating stops first, everything tied to the old
+// engine (CJ's rig, the board, the world) is set up again for the new one,
+// and the old engine is freed and a new one loaded on a background thread, as
+// at startup (about 10 s). Freeing waits for the engine's thread, so it must
+// not be the game's thread in case the engine is stuck.
+void RestartEngine() {
+    if (g_load.load(std::memory_order_acquire) == Load::Loading) {
+        Message("Skate 3 is still loading...");
+        return;
+    }
+    if (g_skate.active) Stop("restarting the Skate engine", true);
+    g_rig.ready = false;
+    for (BoardPart& part : g_board.parts) {
+        if (part.texture) part.texture->Release();
+    }
+    g_board = Board{};
+    g_world.pending = 0;
+    g_world.hash = 0;
+    g_world.cars.clear();
+    g_readyAnnounced = false;
+    SkSession* old = g_session;
+    g_session = nullptr;
+    g_load.store(Load::Loading, std::memory_order_release);
+    Log("Restarting the Skate engine");
+    Message("Restarting Skate 3...");
+    std::thread([old] {
+        if (old) g_api.session_free(old);
+        LoadEngine();
+    }).detach();
+}
+
 void CheckCarHits() {
     ULONGLONG now = GetTickCount64();
     CPlayerPed* ped = g_skate.ped;
@@ -1689,6 +1721,9 @@ void StartCommand(const TestCommand& c, CPlayerPed* ped) {
     case Kind::Unskate:
         Stop("test: unskate", true);
         return;
+    case Kind::Restart: // the next command waits until the engine is ready (TestFrame)
+        RestartEngine();
+        return;
     case Kind::Car: {
         int model = static_cast<int>(c.args[0]);
         CStreaming::RequestModel(model, 0);
@@ -1927,6 +1962,10 @@ void StartTestMode() {
 void OnFrame() {
     CPlayerPed* ped = FindPlayerPed(-1);
     bool key = ToggleKeyPressed();
+    if (key && (GetAsyncKeyState(VK_CONTROL) & 0x8000)) { // Ctrl + J: restart the engine instead
+        RestartEngine();
+        key = false;
+    }
     bool combo = false;
     if (g_cfg.padToggle) combo = g_sticks.Update(ped, g_skate.active, g_cfg.comboWindowMs);
     bool toggle = key || combo;

@@ -45,6 +45,8 @@ int main() {
         Expect("unskate and quit", c[10].kind == Kind::Unskate && c[11].kind == Kind::Quit);
     }
 
+    Expect("restart", Parse("restart\n", c, error) && c.size() == 1 && c[0].kind == Kind::Restart);
+    Expect("restart takes nothing", !Parse("restart now\n", c, error));
     Expect("shoot defaults to four angles", Parse("shoot idle\n", c, error) && c[0].angles.size() == 4);
     Expect("unknown command names its line", !Parse("load 1\n\njump\n", c, error) && error.rfind("line 3", 0) == 0);
     Expect("bad pad input is refused", !Parse("pad 10 Z\n", c, error));
