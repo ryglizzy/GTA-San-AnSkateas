@@ -10,15 +10,20 @@ own copies of both games.
 
 ## Download and install
 
-Get the latest zip from the **Releases** page and follow its `README.txt`. In short:
+1. **Get GTA San Andreas ready (one time).** The mod needs the classic PC game
+   (not the Definitive Edition) at version 1.0 US with an ASI Loader. Run
+   [GTA SA Open Downgrader](https://github.com/xxanqw/gtasa-open-downgrader/releases)
+   on your copy: downgrade it, and install **ASI Loader & ModLoader** from its mod list.
+2. **Get your Skate 3 files (one time).** Skate 3 for Xbox 360, extracted to a
+   folder with `default.xex` and `data` in it: from your disc's ISO with
+   [extract-xiso](https://github.com/XboxDev/extract-xiso)
+   (`extract-xiso -x "Skate 3.iso"`), or a Games on Demand copy with Velocity.
+3. **A controller.** An Xbox controller, or a PlayStation one through DS4Windows.
+4. **Install.** Download the zip from **Releases**, unzip it, double-click
+   `Setup.cmd`, and pick your GTA folder and your `default.xex`.
+5. **Play.** In game, when "Skate 3 is ready" shows, press **J** (or **L3 + R3**).
 
-1. GTA San Andreas for PC **version 1.0 US** (downgrade newer copies first with
-   [gtasa-open-downgrader](https://github.com/xxanqw/gtasa-open-downgrader))
-   with an ASI loader (Silent's ASI Loader).
-2. Skate 3 for **Xbox 360, extracted**: `default.xex` with its `data` folder
-   (from your own disc via extract-xiso, or a Games on Demand copy via Velocity).
-3. An Xbox (XInput) controller. DS4Windows works for PlayStation pads.
-4. Unzip, double-click `Setup.cmd`, pick your GTA folder and your `default.xex`.
+The zip's `README.txt` has the same steps in more detail, plus troubleshooting.
 
 ## Repository layout
 
@@ -40,17 +45,15 @@ only for people who want to change the code and compile the mod themselves
      In the installer, tick **Desktop development with C++**.
    - [Rust](https://rustup.rs) (run `rustup-init.exe` and accept the defaults).
 2. **Download this project:** the green **Code** button, then **Download ZIP**, and unzip it.
-3. **Download [plugin-sdk](https://github.com/DK22Pac/plugin-sdk)** the same way and
-   unzip it inside this project's folder, renamed to `plugin-sdk` (so that
-   `plugin-sdk\plugin_sa` exists).
-4. **Double-click `build.cmd`.** The first run takes a while (it also builds
-   plugin-sdk). It ends with the two finished files:
+3. **Double-click `build.cmd`.** The first run downloads and builds
+   [plugin-sdk](https://github.com/DK22Pac/plugin-sdk) too, so it needs internet and
+   takes a few minutes. It ends with the two finished files:
    `sa-plugin\build\SanAnskateas.asi` and
    `skate-ffi\target\i686-pc-windows-msvc\release\skate_ffi.dll`.
-5. **To try it in your game:** run `sa-plugin\build.cmd install` (it assumes the
-   Steam folder; for another folder, first run `set GAME=C:\your\GTA folder` in
-   the same window). Run the release's `Setup.cmd` once beforehand to create
-   the Skate 3 data.
+4. **To try it in your game:** install the mod once with the release's
+   `Setup.cmd` (that also makes the Skate 3 data), then copy your two files over
+   it with `sa-plugin\build.cmd install`. It assumes the Steam game folder; for
+   another one, first run `set GAME=C:\your\GTA folder` in the same window.
 
 For maintainers: `release\make-dist.ps1` packs the Releases zip. It needs the
 mashup's converter (`iw4l-skate-convert.exe`, from the mashup's own release),

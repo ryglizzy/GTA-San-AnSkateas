@@ -44,12 +44,19 @@ if (-not $gta) {
 $exe = GameExe $gta
 if (-not $exe) { Fail "there is no gta_sa.exe in $gta." }
 Say "GTA San Andreas: $gta"
+$downgrader = 'https://github.com/xxanqw/gtasa-open-downgrader/releases'
 if ($exe.Length -ne $us10Size) {
-    Write-Host "  Warning: $($exe.Name) is not version 1.0 US. The mod only works with 1.0 US;" -ForegroundColor Yellow
-    Write-Host "  downgrade the game first (for example with gta-sa-open-downgrader)." -ForegroundColor Yellow
+    $answer = [System.Windows.Forms.MessageBox]::Show(
+        "This GTA San Andreas doesn't look like version 1.0 US, which the mod needs.`n`n" +
+        "Run GTA SA Open Downgrader on it first (it also installs the ASI Loader).`n`n" +
+        "Yes: open the downgrader's download page and stop here.`nNo: carry on anyway.",
+        'GTA San Anskateas setup', 'YesNo', 'Warning')
+    if ($answer -eq 'Yes') { Start-Process $downgrader; exit 1 }
 }
-if (-not ((Test-Path -LiteralPath (Join-Path $gta 'vorbisHooked.dll')) -or (Test-Path -LiteralPath (Join-Path $gta 'dinput8.dll')))) {
-    Write-Host "  Warning: no ASI loader found. Install Silent's ASI Loader so the game loads .asi mods." -ForegroundColor Yellow
+$loaders = 'vorbisHooked.dll', 'dinput8.dll', 'version.dll', 'winmm.dll'
+if (-not ($loaders | Where-Object { Test-Path -LiteralPath (Join-Path $gta $_) })) {
+    Write-Host "  Warning: no ASI Loader found, so the game won't load the mod." -ForegroundColor Yellow
+    Write-Host "  GTA SA Open Downgrader can install it ($downgrader)." -ForegroundColor Yellow
 }
 
 # 2. Skate 3: the player's own extracted Xbox 360 copy.

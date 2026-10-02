@@ -7,10 +7,25 @@ set "ROOT=%~dp0"
 set "ROOT=%ROOT:~0,-1%"
 cd /d "%ROOT%"
 
+rem plugin-sdk (https://github.com/DK22Pac/plugin-sdk) is downloaded the first
+rem time, at the exact version this mod was built and tested with.
+set "SDK_COMMIT=15f15b60bbf74c106e1b496ff92c98764abf4605"
 if not exist "%ROOT%\plugin-sdk\plugin_sa" (
-    echo plugin-sdk is missing. Download it from https://github.com/DK22Pac/plugin-sdk
-    echo ^(Code, Download ZIP^) and unzip it here as a folder named plugin-sdk.
-    goto :failed
+    echo === Downloading plugin-sdk ^(first time only^)
+    powershell -NoProfile -ExecutionPolicy Bypass -Command ^
+        "$ErrorActionPreference = 'Stop'; $ProgressPreference = 'SilentlyContinue';" ^
+        "[Net.ServicePointManager]::SecurityProtocol = 'Tls12';" ^
+        "$zip = Join-Path $env:ROOT 'plugin-sdk.zip'; $tmp = Join-Path $env:ROOT 'plugin-sdk.unzip';" ^
+        "Invoke-WebRequest ('https://github.com/DK22Pac/plugin-sdk/archive/' + $env:SDK_COMMIT + '.zip') -OutFile $zip -UseBasicParsing;" ^
+        "if (Test-Path $tmp) { Remove-Item $tmp -Recurse -Force }; Expand-Archive $zip $tmp;" ^
+        "Move-Item (Join-Path $tmp ('plugin-sdk-' + $env:SDK_COMMIT)) (Join-Path $env:ROOT 'plugin-sdk');" ^
+        "Remove-Item $zip, $tmp -Recurse -Force"
+    if not exist "%ROOT%\plugin-sdk\plugin_sa" (
+        echo Could not download plugin-sdk. Check your internet connection, or download
+        echo https://github.com/DK22Pac/plugin-sdk/archive/%SDK_COMMIT%.zip yourself
+        echo and unzip it here as a folder named plugin-sdk.
+        goto :failed
+    )
 )
 if not exist "%USERPROFILE%\.cargo\bin\cargo.exe" (
     echo Rust is missing. Install it from https://rustup.rs, then run this again.
