@@ -1,6 +1,6 @@
-﻿# Arms check: CJ on foot for reference, then riding, pushing, an ollie,
+# Arms check: CJ on foot for reference, then riding, pushing, an ollie,
 # a kickflip and running off the board, photographed from the side and back.
-# Run: gta-sa.exe -sktest "<this file>"  (see CLAUDE.md, Testing)
+# Run: gta-sa.exe -sktest "<this file>"  (commands: sa-plugin/src/test_script.h)
 load 2
 place 2050 -2494 13.6 90     # LS airport runway (ground 12.55), facing west along it
 clock 12 0
