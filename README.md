@@ -53,10 +53,8 @@ only for people who want to change the code and compile the mod themselves
    takes a few minutes. It ends with the two finished files:
    `sa-plugin\build\SanAnskateas.asi` and
    `skate-ffi\target\i686-pc-windows-msvc\release\skate_ffi.dll`.
-4. **To try it in your game:** install the mod once with the release's
-   `Setup.cmd` (that also makes the Skate 3 data), then copy your two files over
-   it with `sa-plugin\build.cmd install`. It assumes the Steam game folder; for
-   another one, first run `set GAME=C:\your\GTA folder` in the same window.
+4. **To test in game:** `sa-plugin\build.cmd install` copies your build over an
+   existing install (set `GAME` first if your game isn't in the Steam folder).
 
 For maintainers: `release\make-dist.ps1` packs the Releases zip. It needs the
 mashup's converter (`iw4l-skate-convert.exe`, from the mashup's own release),
