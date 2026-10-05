@@ -20,15 +20,21 @@ cl /nologo /std:c++latest /EHsc /W3 /Fobuild\ /Fe:build\stick_combo_test.exe tes
 build\stick_combo_test.exe || exit /b 1
 cl /nologo /std:c++latest /EHsc /W3 /Fobuild\ /Fe:build\test_script_test.exe tests\test_script_test.cpp || exit /b 1
 build\test_script_test.exe || exit /b 1
-rem Same settings as plugin-sdk's own SA projects (static CRT, C++latest, LTCG).
-cl /nologo /c /std:c++latest /EHsc /MT /O2 /Oi /GL /Gy /GF /W3 /sdl- ^
+rem Same settings as plugin-sdk's own SA release projects (static CRT,
+rem C++latest, LTCG, NDEBUG: without it plugin-sdk's asserts kept their source
+rem paths, the builder's user folder included, in the ASI).
+cl /nologo /c /std:c++latest /EHsc /MT /O2 /Oi /GL /Gy /GF /W3 /sdl- /DNDEBUG ^
    /D_CRT_NON_CONFORMING_SWPRINTFS /D_CRT_SECURE_NO_WARNINGS /DGTASA /DPLUGIN_SGV_10US /DRW /D_MBCS ^
    /I"%SDK%\plugin_sa" /I"%SDK%\plugin_sa\game_sa" /I"%SDK%\plugin_sa\game_sa\enums" ^
    /I"%SDK%\plugin_sa\game_sa\rw" /I"%SDK%\shared" /I"%SDK%\shared\game" ^
    /Fobuild\ src\main.cpp || exit /b 1
 link /nologo /DLL /LTCG /OPT:REF /OPT:ICF /OUT:build\SanAnskateas.asi build\main.obj ^
-   /LIBPATH:"%SDK%\output\lib" Plugin.lib kernel32.lib user32.lib shell32.lib gdiplus.lib xinput.lib || exit /b 1
+   /LIBPATH:"%SDK%\output\lib" Plugin.lib kernel32.lib user32.lib shell32.lib ole32.lib gdiplus.lib xinput.lib mfuuid.lib || exit /b 1
 echo Built build\SanAnskateas.asi
+rem The Skate 3 audio converter Setup runs (sounds, SK8-FM, trick names).
+cl /nologo /std:c++latest /EHsc /MT /O2 /W3 /DNDEBUG /D_CRT_SECURE_NO_WARNINGS /Fobuild\ /Fe:build\skate-audio.exe tools\skate_audio.cpp ^
+   mfplat.lib mfreadwrite.lib mfuuid.lib ole32.lib || exit /b 1
+echo Built build\skate-audio.exe
 
 if /i not "%~1"=="install" exit /b 0
 if not exist "%GAME%\gta_sa.exe" (echo Game not found at %GAME% & exit /b 1)

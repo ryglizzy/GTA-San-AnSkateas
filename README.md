@@ -25,8 +25,14 @@ own copies of both games.
 4. **Install.** Download the zip from **Releases**, unzip it, double-click
    `Setup.cmd`, and pick your GTA folder and your `default.xex`.
 5. **Play.** In game, when "Skate 3 is ready" shows, press **J** (or **L3 + R3**).
+   Pause, then **Options > SAN ANSKATEAS** for Difficulty, Camera and Trucks.
 
-The zip's `README.txt` has the same steps in more detail, plus troubleshooting.
+**Updating from 1.0?** Unzip the new version anywhere and run its `Setup.cmd`.
+It keeps your settings (adding the new ones) and your Skate data, and asks for
+`default.xex` once to make Skate 3's sounds. Difficulty moves from Normal (1.0's
+default) to Easy, the new default, once; change it in the pause menu any time.
+
+The zip's `README.txt` has the same steps in more detail, what's new, and troubleshooting.
 
 **Skating stops by itself or acts strange?** Press **Ctrl + J** to restart the Skate
 engine (about 10 seconds), no need to restart the game.
@@ -62,9 +68,10 @@ only for people who want to change the code and compile the mod themselves
 4. **To test in game:** `sa-plugin\build.cmd install` copies your build over an
    existing install (set `GAME` first if your game isn't in the Steam folder).
 
-For maintainers: `release\make-dist.ps1` packs the Releases zip. It needs the
-mashup's converter (`iw4l-skate-convert.exe`, from the mashup's own release),
-whose location is set at the top of the script.
+For maintainers: `release\make-dist.ps1 -Zip <file>` packs the Releases zip and
+checks it holds no game files. It needs the mashup's converter
+(`iw4l-skate-convert.exe`, from the mashup's own release), whose location is set
+at the top of the script, and fetches the pinned vgmstream release once.
 
 ## Credits
 
@@ -77,6 +84,7 @@ Major credits to these projects and their creators:
 - [plugin-sdk](https://github.com/DK22Pac/plugin-sdk) by DK22Pac (MIT): the base of the game plugin.
 - [gta-reversed](https://github.com/gta-reversed/gta-reversed): reference for how San Andreas works.
 - [gtasa-open-downgrader](https://github.com/xxanqw/gtasa-open-downgrader): gets San Andreas to 1.0 US.
+- [vgmstream](https://github.com/vgmstream/vgmstream) (ISC): decodes Skate 3's audio during Setup.
 
 Unofficial fan project, not affiliated with EA or Rockstar Games. You need to
 own Skate 3 and GTA San Andreas.

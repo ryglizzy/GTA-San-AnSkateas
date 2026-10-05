@@ -15,9 +15,19 @@ call "%VCVARS%" x86 >nul || exit /b 1
 cl /nologo /W3 /Fe:%OUT%\smoke.exe /Fo:%OUT%\ tests-c\smoke.c %OUT%\skate_ffi.dll.lib /link /LARGEADDRESSAWARE || exit /b 1
 cl /nologo /W3 /Fe:%OUT%\push.exe /Fo:%OUT%\ tests-c\push.c %OUT%\skate_ffi.dll.lib /link /LARGEADDRESSAWARE || exit /b 1
 cl /nologo /W3 /Fe:%OUT%\knock.exe /Fo:%OUT%\ tests-c\knock.c %OUT%\skate_ffi.dll.lib /link /LARGEADDRESSAWARE || exit /b 1
+cl /nologo /W3 /Fe:%OUT%\marker.exe /Fo:%OUT%\ tests-c\marker.c %OUT%\skate_ffi.dll.lib /link /LARGEADDRESSAWARE || exit /b 1
+cl /nologo /W3 /Fe:%OUT%\options.exe /Fo:%OUT%\ tests-c\options.c %OUT%\skate_ffi.dll.lib /link /LARGEADDRESSAWARE || exit /b 1
+cl /nologo /W3 /Fe:%OUT%\bail.exe /Fo:%OUT%\ tests-c\bail.c %OUT%\skate_ffi.dll.lib /link /LARGEADDRESSAWARE || exit /b 1
+cl /nologo /W3 /Fe:%OUT%\landing.exe /Fo:%OUT%\ tests-c\landing.c %OUT%\skate_ffi.dll.lib /link /LARGEADDRESSAWARE || exit /b 1
+cl /nologo /W3 /Fe:%OUT%\grind.exe /Fo:%OUT%\ tests-c\grind.c %OUT%\skate_ffi.dll.lib /link /LARGEADDRESSAWARE || exit /b 1
 rem The offline checks need converted Skate data: build.cmd <skate-data\assets>
 if not "%~1"=="" %OUT%\smoke.exe %1 || exit /b 1
 rem build.cmd <skate-data\assets> push   also measures push speeds per difficulty
 rem build.cmd <skate-data\assets> knock  also traces a car-hit roll-over step by step
 if /i "%~2"=="push" %OUT%\push.exe %1
 if /i "%~2"=="knock" %OUT%\knock.exe %1
+rem build.cmd <skate-data\assets> marker  checks a marker set on foot returns facing the same way
+if /i "%~2"=="marker" %OUT%\marker.exe %1
+rem build.cmd <skate-data\assets> options  checks difficulty, camera and trucks change live
+if /i "%~2"=="options" %OUT%\options.exe %1
+rem grind.exe (run it yourself) grinds in a dumped world: see tests-c\grind.c

@@ -1,0 +1,46 @@
+# Session markers set on foot in other ways: while still walking, while
+# walking toward the camera, and returning with the stick held. Each pair
+# of photos (set / returned) must face the same way (log: "facing").
+load 2
+place 2050 -2494 13.6 90
+clock 12 0
+weather 1
+wait 90
+skate
+idle 30
+pad 10 Y
+idle 90
+# 1: set while walking forward
+pad 60 ls=0,1
+pad 10 LB ls=0,1
+pad 10 LB DOWN ls=0,1
+screen a-set-walking
+pad 10 LB ls=0,1
+pad 60 ls=1,0
+idle 20
+pad 150 LB UP
+idle 60
+screen a-returned
+# 2: set while walking toward the camera
+pad 60 ls=0,-1
+pad 10 LB ls=0,-1
+pad 10 LB DOWN ls=0,-1
+screen b-set-toward-camera
+pad 10 LB ls=0,-1
+pad 60 ls=-1,0
+idle 20
+pad 150 LB UP
+idle 60
+screen b-returned
+# 3: standing, then return while holding the stick forward
+idle 40
+pad 10 LB
+pad 10 LB DOWN
+pad 10 LB
+screen c-set-standing
+pad 60 ls=1,0
+idle 20
+pad 150 LB UP ls=0,1
+pad 30 ls=0,1
+screen c-returned-stick
+quit

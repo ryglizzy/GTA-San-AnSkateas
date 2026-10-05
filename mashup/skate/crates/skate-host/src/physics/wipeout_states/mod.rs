@@ -33,6 +33,19 @@ pub(crate) struct WipeoutState {
     /// SanAnskateas addition: the board's own velocity for the next vehicle
     /// ejection (None: the skater's).
     pub(crate) board_throw: Option<[f32; 3]>,
+    /// SanAnskateas addition: a host car hit on its way to becoming an
+    /// ordinary bail (see `Session::knock`).
+    pub(crate) knock: Option<PendingKnock>,
+}
+
+/// SanAnskateas addition: a host car's hit, in Skate space.
+#[derive(Clone, Copy, Debug)]
+pub(crate) struct PendingKnock {
+    pub push: [f32; 3],          // added to the skater's motion, m/s
+    pub spin: Option<[f32; 3]>,  // rad/s, tumbling freely until he touches something
+    pub lift: f32,               // metres up (onto a car's hood)
+    pub board: Option<[f32; 3]>, // added to the deck's motion instead of `push`
+    pub ticks: u8,               // since the bail was requested
 }
 impl WipeoutState {
     pub fn load(data: &Collections, assets: &Path, primary_bank_sha: &str) -> Result<Self, String> {
@@ -57,6 +70,7 @@ impl WipeoutState {
             free_tumble: false,
             ejected_frames: 0,
             board_throw: None,
+            knock: None,
         })
     }
 }

@@ -75,7 +75,48 @@ pub(crate) struct Runtime {
     pub modified_trick: bool,
     pub close_tricks: bool,
 }
+/// SanAnskateas addition: what a host's score HUD shows, read after a tick.
+/// `new_trick`, `modified_trick` and `close_tricks` are only set for the
+/// tick that produced them.
+#[derive(Clone, Debug, Default)]
+pub struct View {
+    pub trick: String,
+    pub new_trick: bool,
+    pub modified_trick: bool,
+    pub close_tricks: bool,
+    pub switch: bool,
+    pub fakie: bool,
+    pub sequence_active: bool,
+    pub sequence: f32,
+    pub line: f32,
+    pub total: f32,
+    pub multiplier: f32,
+    pub line_time: f32,
+    pub last_reward: f32,
+}
+
 impl Runtime {
+    /// SanAnskateas addition: see `View`.
+    pub fn view(&self) -> View {
+        let s = &self.session.holder.snapshot;
+        let capacity = self.data.line_capacity;
+        View {
+            trick: self.trick_name.clone(),
+            new_trick: self.new_trick,
+            modified_trick: self.modified_trick,
+            close_tricks: self.close_tricks,
+            switch: self.stance[0],
+            fakie: self.stance[1],
+            sequence_active: self.sequence_active,
+            sequence: self.sequence_score,
+            line: s.line,
+            total: s.completed_lines,
+            multiplier: self.session.combo.multiplier,
+            line_time: if capacity > 0. { (self.session.line.points / capacity).clamp(0., 1.) } else { 0. },
+            last_reward: s.last_reward,
+        }
+    }
+
     pub fn load(data: &Collections) -> Result<Self, String> {
         Ok(Self {
             data: ScoringData::load(data)?,

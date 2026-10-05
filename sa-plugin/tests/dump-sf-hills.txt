@@ -1,0 +1,24 @@
+# More San Fierro hills around Calton Heights, saved for picking a clear
+# straight downhill line offline (scratch clearpath.py over test-worlds).
+load 2
+clock 12 0
+weather 1
+place -2000 950 60 0
+wait 200
+dumpworld sf-a
+place -1950 1010 60 0
+wait 200
+dumpworld sf-b
+place -2010 1080 60 0
+wait 200
+dumpworld sf-c
+place -2060 1140 70 0
+wait 200
+dumpworld sf-d
+place -1930 900 50 0
+wait 200
+dumpworld sf-e
+place -2150 1150 80 0
+wait 200
+dumpworld sf-f
+quit

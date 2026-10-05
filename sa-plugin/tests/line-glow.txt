@@ -1,0 +1,99 @@
+# A line's end: its points flash and glow green, then fade. First a lone
+# kickflip (it ends a moment after landing), then a long combo whose line
+# timer runs out. Photos every few frames around each end (the game runs
+# about 50 frames a second here); the log's "Line over" lines say when each
+# ended.
+load 2
+place 2050 -2494 13.6 90
+clock 12 0
+weather 1
+wait 90
+skate
+pad 120 A
+idle 20
+pad 30 rs=0,-1
+pad 3 rs=-1,0.5
+idle 50
+screen single-0
+idle 105
+screen single-1
+idle 4
+screen single-2
+idle 4
+screen single-3
+idle 4
+screen single-4
+idle 4
+screen single-5
+idle 4
+screen single-6
+idle 4
+screen single-7
+idle 4
+screen single-8
+idle 4
+screen single-9
+idle 4
+screen single-10
+idle 8
+screen single-11
+idle 12
+screen single-12
+idle 16
+screen single-13
+idle 20
+screen single-14
+idle 24
+screen single-15
+idle 30
+screen single-16
+idle 40
+pad 30 rs=0,-1
+pad 3 rs=-1,0.5
+idle 22
+pad 50 rs=0,-0.45
+pad 20 rs=0,-1
+pad 3 rs=-1,0.5
+idle 22
+pad 50 rs=0,-0.45
+pad 20 rs=0,-1
+pad 3 rs=1,0.5
+idle 22
+pad 50 rs=0,-0.45
+pad 20 rs=0,-1
+pad 3 rs=-1,0.5
+idle 60
+screen line-0
+idle 150
+screen line-1
+idle 4
+screen line-2
+idle 4
+screen line-3
+idle 4
+screen line-4
+idle 4
+screen line-5
+idle 4
+screen line-6
+idle 4
+screen line-7
+idle 4
+screen line-8
+idle 4
+screen line-9
+idle 4
+screen line-10
+idle 8
+screen line-11
+idle 12
+screen line-12
+idle 16
+screen line-13
+idle 20
+screen line-14
+idle 24
+screen line-15
+idle 30
+screen line-16
+quit

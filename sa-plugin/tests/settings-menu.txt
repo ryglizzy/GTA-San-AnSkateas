@@ -1,0 +1,16 @@
+# Options > SAN ANSKATEAS: the entry on the Options page, our page with its
+# values and truck bars, each option changed through the menu's own input
+# (log "Settings:"), then skating with what was picked (the Low camera shows
+# in the photo). The player's own settings are put back when the test ends.
+load 2
+place 2050 -2494 13.6 90
+clock 12 0
+weather 1
+wait 90
+skate
+idle 60
+screen high-camera
+menutour
+idle 120
+screen low-camera
+quit

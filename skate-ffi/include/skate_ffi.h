@@ -67,10 +67,68 @@ typedef struct SkRigBone {
     float bind[16];          /* bind pose in the host model's space, column-major */
 } SkRigBone;
 
+/* The skater's moment-to-moment state for skateboard sounds. The counters
+ * only go up: a change since the last call means that many pops, landings,
+ * grinds or bails happened in between. Velocities in host units per second,
+ * host space. */
+typedef struct SkFeedback {
+    uint32_t state;           /* Skate's physical state: 100s riding (101 powerslide), 200s air,
+                                 300 bail, 400s grinds, 500s off the board, 600s plants */
+    uint32_t wheels;          /* wheels touching the ground (0-4) */
+    float board_velocity[3];
+    float board_spin[3];      /* the board's angular velocity, rad/s */
+    float rider_velocity[3];  /* the skater's body */
+    uint32_t pops, landings, grinds, bails;
+    float pop_speed;          /* upward board speed of the last pop */
+    float landing_speed;      /* how hard the last landing hit */
+    float bail_speed;         /* the body's speed when the last bail began */
+    uint32_t landing_grade;   /* the last landing as Skate 3 grades it: 0 none yet,
+                                 1 clean, 2 okay, 3 sketchy */
+    float brake;              /* how hard the foot brake is on, 0-1 */
+    uint32_t dismounts;       /* steps off the board while riding (Y) */
+    uint32_t bail_checks[2];  /* Skate's wipeout checks behind the last bail, a bit per
+                                 request number (2: the board hit something at speed,
+                                 0: the body did, 17: fell off a grind...) */
+    uint32_t bail_first_check; /* the one that fired first; 0xFFFFFFFF: none (a car hit) */
+} SkFeedback;
+
+/* Skate 3's own trick recognition and scoring. A sequence (one air, grind
+ * or manual run) is published into the line when it lands; the line timer
+ * drains, and when it runs out the line is banked into the total. */
+typedef struct SkScore {
+    char trick[64];           /* Skate 3 text key of the last trick announced, e.g.
+                                 "ID_TRICK_FLIP_KICKFLIP"; "" for none */
+    uint32_t tricks;          /* counts announcements */
+    uint32_t converts;        /* counts announced tricks turning into another (trick holds the new one) */
+    uint32_t sequences;       /* counts sequences landed (last_reward holds the newest's points) */
+    uint32_t bails;           /* counts sequences cut short by a bail */
+    uint32_t banks;           /* counts lines banked into the total */
+    uint32_t stance;          /* of the last announcement: 1 switch, 2 fakie */
+    int32_t sequence_active;
+    float sequence;           /* the running sequence's points, multiplier included */
+    float line;               /* points landed in the current line */
+    float total;              /* points of every sequence landed this session */
+    float multiplier;
+    float line_time;          /* the line timer, 1 full down to 0 */
+    float last_reward;        /* points the last landed sequence earned */
+    float banked;             /* points the last bank added to the total */
+} SkScore;
+
+/* The session marker menu Skate 3 shows while LB is held. */
+typedef struct SkMarker {
+    int32_t visible;          /* LB is held */
+    int32_t can_place;        /* LB + D-pad down places a marker here */
+    int32_t can_return;       /* a marker is set: hold LB + D-pad up to go back to it */
+    float progress;           /* 0..1 while holding to go back */
+} SkMarker;
+
 /* Compile-time checks that this header matches the DLL. */
 typedef char sk_controls_size_check[sizeof(SkControls) == 12 ? 1 : -1];
 typedef char sk_pose_size_check[sizeof(SkPose) == 136 ? 1 : -1];
 typedef char sk_world_info_size_check[sizeof(SkWorldInfo) == 20 ? 1 : -1];
+typedef char sk_feedback_size_check[sizeof(SkFeedback) == 96 ? 1 : -1];
+typedef char sk_score_size_check[sizeof(SkScore) == 120 ? 1 : -1];
+typedef char sk_marker_size_check[sizeof(SkMarker) == 16 ? 1 : -1];
 
 /* Starts a session. assets_dir (UTF-8) is the skate-data folder converted
  * from your own Skate 3 default.xex. triangles: triangle_count * 9 floats.
@@ -172,6 +230,13 @@ SK_API int SK_CALL sk_update(SkSession* session, float dt);
 SK_API int SK_CALL sk_step(SkSession* session, const SkControls* controls);
 
 SK_API int SK_CALL sk_suspend_input(SkSession* session);
+
+/* Options that apply right away (the next engine step). Difficulty is
+ * "easy", "normal" or "hardcore"; camera low nonzero = Skate 3's Low ("OG")
+ * camera, zero = High; trucks 0 loosest .. 1 tightest (stock 0.7). */
+SK_API int SK_CALL sk_set_difficulty(SkSession* session, const char* difficulty);
+SK_API int SK_CALL sk_set_camera(SkSession* session, int low);
+SK_API int SK_CALL sk_set_trucks(SkSession* session, float tightness);
 SK_API float SK_CALL sk_period(SkSession* session); /* seconds; -1 on failure */
 SK_API int SK_CALL sk_set_aspect_ratio(SkSession* session, float aspect_ratio);
 
@@ -183,6 +248,11 @@ SK_API int SK_CALL sk_get_bones(SkSession* session, float* out, uint32_t max_bon
 SK_API const char* SK_CALL sk_bone_name(SkSession* session, uint32_t index);
 SK_API const char* SK_CALL sk_state(SkSession* session);
 SK_API int SK_CALL sk_controller(SkSession* session); /* pad 0-3, or -1 */
+
+/* As of the last engine step (sk_update, sk_step, sk_activate). */
+SK_API int SK_CALL sk_feedback(SkSession* session, SkFeedback* out);
+SK_API int SK_CALL sk_score(SkSession* session, SkScore* out);
+SK_API int SK_CALL sk_marker(SkSession* session, SkMarker* out);
 
 SK_API const char* SK_CALL sk_last_error(void);
 

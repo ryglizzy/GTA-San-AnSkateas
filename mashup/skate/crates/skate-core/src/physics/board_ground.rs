@@ -203,6 +203,10 @@ impl BoardGroundState {
             //82C07ED0..7F2C: this is the OLD part velocity, not the report's
             //post-solve relative velocity or the finite-difference acceleration.
             let closing = -dot(report.normal, self.previous_velocities[i]);
+            if closing > 4.0 && crate::player::wipeout::trace() {
+                eprintln!("board contact: part {i} closing {closing:.2} normal {:?} at {:?} part velocity {:?} now {:?}",
+                    report.normal, report.position, self.previous_velocities[i], report.relative_linear_velocity);
+            }
             if !(closing <= self.maximum_closing_speed) {
                 self.maximum_closing_speed = closing;
                 self.closing_velocity = scale(report.normal, -closing);

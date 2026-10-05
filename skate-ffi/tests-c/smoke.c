@@ -252,6 +252,32 @@ int main(int argc, char** argv) {
             printf("flip: states %s\n", states);
             printf("flip: arm matrices worst scale deviation %.3f, smallest determinant %.3f; forearm twist max L %.0f, R %.0f deg\n",
                    worstScale, minDet, maxTwist[0], maxTwist[1]);
+            /* What the plugin's sounds and score HUD read: the pop and the
+             * landing are counted, Skate 3 names the trick and scores it, and
+             * the line is banked once its timer runs out. */
+            {
+                SkFeedback fb;
+                SkScore sc;
+                SkMarker mk;
+                if (sk_feedback(s, &fb) != 0 || sk_score(s, &sc) != 0 || sk_marker(s, &mk) != 0) {
+                    printf("feedback failed: %s\n", sk_last_error());
+                    return 1;
+                }
+                printf("flip sounds: state %u, wheels %u, pops %u (%.1f m/s up), landings %u (%.1f m/s, grade %u), grinds %u, bails %u\n",
+                       fb.state, fb.wheels, fb.pops, fb.pop_speed, fb.landings, fb.landing_speed, fb.landing_grade, fb.grinds,
+                       fb.bails);
+                printf("flip score: trick '%s' (%u announced, %u converted), sequence %.0f, line %.0f x%.2f, timer %.2f, total %.0f\n",
+                       sc.trick, sc.tricks, sc.converts, sc.sequence, sc.line, sc.multiplier, sc.line_time, sc.total);
+                for (i = 0; i < 300 && sc.sequences == 0; i++) {
+                    if (sk_step(s, &idle) < 0 || sk_score(s, &sc) != 0) break;
+                }
+                printf("flip score: %u sequences landed (last %.0f points), %u bails, %u lines banked; marker menu %d\n",
+                       sc.sequences, sc.last_reward, sc.bails, sc.banks, mk.visible);
+                if (fb.pops < 1 || fb.landings < 1 || sc.tricks < 1 || sc.sequences < 1) {
+                    printf("flip: the pop, the landing or the trick wasn't counted\n");
+                    return 1;
+                }
+            }
         }
     }
 

@@ -1,0 +1,13 @@
+# Where San Fierro's crooked street (Windy Windy Windy Windy Street, SA's
+# Lombard Street) stands: go to Calton Heights and log its models.
+load 2
+place -2128 1050 80 0
+clock 12 0
+weather 1
+wait 200
+find lombard3_sfe
+find road_16_sfe01
+find lombardsteps
+find lbd_house1_sfe
+screen calton
+quit

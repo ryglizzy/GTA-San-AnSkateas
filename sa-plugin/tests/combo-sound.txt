@@ -1,0 +1,56 @@
+# A long flip + manual chain: the multiplier must step up x1.5, x2, x3,
+# each step playing Skate 3's combo sound (log: 'Sound: combo xN').
+load 2
+place 2050 -2494 13.6 90
+clock 12 0
+weather 1
+wait 90
+skate
+pad 120 A
+idle 20
+pad 20 rs=0,-1
+pad 3 rs=-1,0.5
+idle 22
+pad 50 rs=0,-0.45
+pad 20 rs=0,-1
+pad 3 rs=1,0.5
+idle 22
+pad 50 rs=0,-0.45
+pad 20 rs=0,-1
+pad 3 rs=-1,0.5
+idle 22
+pad 50 rs=0,-0.45
+pad 40 A
+pad 20 rs=0,-1
+pad 3 rs=1,0.5
+idle 22
+pad 50 rs=0,-0.45
+pad 20 rs=0,-1
+pad 3 rs=-1,0.5
+idle 22
+pad 50 rs=0,-0.45
+pad 20 rs=0,-1
+pad 3 rs=1,0.5
+idle 22
+pad 50 rs=0,-0.45
+pad 40 A
+pad 20 rs=0,-1
+pad 3 rs=-1,0.5
+idle 22
+pad 50 rs=0,-0.45
+pad 20 rs=0,-1
+pad 3 rs=1,0.5
+idle 22
+pad 50 rs=0,-0.45
+pad 20 rs=0,-1
+pad 3 rs=-1,0.5
+idle 22
+pad 50 rs=0,-0.45
+pad 40 A
+pad 20 rs=0,-1
+pad 3 rs=1,0.5
+idle 22
+pad 50 rs=0,-0.45
+idle 60
+screen combo-end
+quit

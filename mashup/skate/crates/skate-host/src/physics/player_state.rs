@@ -197,6 +197,51 @@ pub(crate) fn apply_vehicle_ejection(physics: &mut GamePhysics, skater: &mut Ska
     Ok(true)
 }
 
+/// SanAnskateas addition: a host car's hit (see `Session::knock`), once per
+/// tick after state selection. The vehicle-contact request it filed has made
+/// an ordinary bail: the ragdoll, which starts from his pose of the moment
+/// as in any bail, and the board take the hit's motion. No bail two ticks on
+/// (he's on foot): Skate's vehicle ejection throws him instead.
+pub(crate) fn advance_knock(physics: &mut GamePhysics, skater: &mut SkaterRuntime) {
+    use skate_core::math::Vector3;
+    let Some(mut knock) = skater.wipeout_state.knock else { return };
+    let deck = physics.board.bodies()[skate_core::physics::board::BodyId::Deck.index()].rates.linear_velocity;
+    let add = |v: [f32; 3]| Vector3::new(deck.x + v[0], deck.y + v[1], deck.z + v[2]);
+    let velocity = add(knock.push);
+    const TUMBLE: f32 = 4.0; // rad/s at a full-speed hit
+    let push = bevy::math::Vec3::from_array(knock.push);
+    let spin = knock.spin.map(bevy::math::Vec3::from_array).unwrap_or_else(|| {
+        bevy::math::Vec3::Y.cross(push.normalize_or_zero()) * TUMBLE * (push.length() / 10.0).min(1.0)
+    });
+    let angular = Vector3::new(spin.x, spin.y, spin.z);
+    skater.wipeout_state.free_tumble = knock.spin.is_some();
+    if skater.player_state.current() == PhysicalStateId::WipeoutGround {
+        skater.wipeout_state.knock = None;
+        for body in skater.skeleton.bodies_mut() {
+            body.rates.position.y += knock.lift;
+        }
+        throw(skater.skeleton.bodies_mut(), velocity, angular);
+        let board_velocity = knock.board.map_or(velocity, add);
+        let length = physics.board.part_transforms()[skate_core::physics::board::BodyId::Deck.index()].basis.columns[2];
+        let rate = spin.length() * 0.7;
+        throw(physics.board.bodies_mut(), board_velocity, Vector3::new(length[0] * rate, length[1] * rate, length[2] * rate));
+        let v = [velocity.x, velocity.y, velocity.z, 0.];
+        skater.animated_skeleton.motion.velocity_world = v;
+        skater.player_input.processed.vectors_544_560_592_608[3] = v.map(f32::to_bits);
+        skater.wipeout_state.state.velocity = v;
+        skater.wipeout_state.ejected_frames = 3; // see update.rs
+    } else if knock.ticks >= 2 {
+        skater.wipeout_state.knock = None;
+        skater.wipeout_state.board_throw = knock.board.map(|b| [deck.x + b[0], deck.y + b[1], deck.z + b[2]]);
+        let mut transform = skater.animated_skeleton.roots.animation_to_world;
+        transform[3][1] += knock.lift;
+        skater.teleport_state.request_vehicle_ejection(transform, [velocity.x, velocity.y, velocity.z], spin.to_array());
+    } else {
+        knock.ticks += 1;
+        skater.wipeout_state.knock = Some(knock);
+    }
+}
+
 /// SanAnskateas addition: jointed bodies (the skater's, the board's parts)
 /// thrown at `velocity` and turning as a whole at `angular`, each part moving
 /// with the turn about their centre of mass. (The same velocity and spin on

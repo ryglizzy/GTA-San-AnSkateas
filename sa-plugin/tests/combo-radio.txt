@@ -1,0 +1,38 @@
+# A flip into a manual into another flip: the combo's points must wait for
+# the final landing on four wheels (popup with its landing grade), and the
+# line's amount stays while its timer runs. Then the radio: a GTA station
+# must stay on (the log's "Radio check" lines), and SK8-FM must come back
+# on the same song, further on.
+load 2
+place 2050 -2494 13.6 90
+clock 12 0
+weather 1
+wait 90
+skate
+radio 7
+idle 120
+screen radio-x
+pad 90 A
+idle 30
+pad 30 rs=0,-1
+pad 3 rs=-1,0.5
+idle 22
+pad 60 rs=0,-0.45
+screen manual
+pad 20 rs=0,-1
+pad 3 rs=-1,0.5
+idle 20
+screen second-flip
+idle 50
+screen landed
+idle 90
+screen line-held
+radio sk8fm
+idle 180
+radio 7
+idle 180
+radio sk8fm
+idle 120
+pad 20 LB
+screen marker-menu
+quit

@@ -54,6 +54,17 @@ int main() {
     Expect("load needs a real slot", !Parse("load 9\n", c, error));
     Expect("shoot needs a name", !Parse("shoot dist=3\n", c, error));
     Expect("at most six angles", !Parse("shoot x angles=1,2,3,4,5,6,7\n", c, error));
+    Expect("screen keeps its name", Parse("screen hud\n", c, error) && c[0].kind == Kind::Screen && c[0].name == "hud");
+    Expect("screen needs a name", !Parse("screen\n", c, error));
+    Expect("radio stations", Parse("radio sk8fm\nradio 7\nradio off\n", c, error) && c.size() == 3 && c[0].kind == Kind::Radio &&
+                                 c[1].name == "7" && c[2].name == "off");
+    Expect("radio needs a real station", !Parse("radio 40\n", c, error) && !Parse("radio\n", c, error));
+    Expect("find keeps the model name", Parse("find lombard3_sfe\n", c, error) && c[0].kind == Kind::Find && c[0].name == "lombard3_sfe");
+    Expect("find needs one name", !Parse("find\n", c, error) && !Parse("find a b\n", c, error));
+    Expect("wanted levels", Parse("wanted 3\n", c, error) && c[0].kind == Kind::Wanted && c[0].args[0] == 3.f);
+    Expect("wanted needs a level 0-6", !Parse("wanted 7\n", c, error) && !Parse("wanted\n", c, error) && !Parse("wanted 1.5\n", c, error));
+    Expect("menutour", Parse("menutour\n", c, error) && c[0].kind == Kind::MenuTour && !Parse("menutour now\n", c, error));
+    Expect("dumpworld keeps its name", Parse("dumpworld lombard\n", c, error) && c[0].kind == Kind::DumpWorld && c[0].name == "lombard");
 
     std::printf(failures ? "%d FAILED\n" : "all passed\n", failures);
     return failures ? 1 : 0;

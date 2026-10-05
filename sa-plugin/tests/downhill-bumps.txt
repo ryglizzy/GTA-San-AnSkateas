@@ -1,0 +1,20 @@
+﻿# A straight 10-degree San Fierro street below Lombard, clear of poles for
+# 90 m east (checked on dumped collision), ridden downhill
+# with no tricks: every "Sound: landing" in the log is the board bouncing
+# off a bump. Run with SK_SMOOTH=0 in the environment to compare the
+# unsmoothed world.
+load 2
+clock 12 0
+weather 1
+place -1982.4 909.2 49 270
+wait 150
+skate
+pad 60 A
+idle 30
+pad 60 A
+idle 30
+pad 60 A
+idle 240
+screen downhill
+quit
+

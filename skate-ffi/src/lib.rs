@@ -10,6 +10,7 @@
 
 mod board_export;
 mod rails;
+mod smooth;
 
 use bevy::math::{Mat4, Vec3, Vec4};
 use skate_host::bridge::{CollisionBuilder, ControllerTransport, Controls, Pose, PreparedCollision, Session};
@@ -69,15 +70,228 @@ const _: () = assert!(size_of::<SkWorldInfo>() == 20);
 /// A world ready to install: its generation, collision and stats.
 type Built = (u32, PreparedCollision, SkWorldInfo);
 
+/// The skater's moment-to-moment state for the host's skateboard sounds (see
+/// `sk_feedback`). Counters only go up: a change since the last call means
+/// that many pops, landings... happened in between.
+#[repr(C)]
+#[derive(Clone, Copy, Default)]
+pub struct SkFeedback {
+    pub state: u32,  // Skate's physical state number: 100s riding, 200s air, 300 bail, 400s grind, 500s off the board
+    pub wheels: u32, // wheels touching the ground
+    pub board_velocity: [f32; 3],
+    pub board_spin: [f32; 3], // rad/s
+    pub rider_velocity: [f32; 3],
+    pub pops: u32,
+    pub landings: u32,
+    pub grinds: u32,
+    pub bails: u32,
+    pub pop_speed: f32,     // upward board speed of the last pop
+    pub landing_speed: f32, // how hard the last landing hit
+    pub bail_speed: f32,    // the body's speed when the last bail began
+    pub landing_grade: u32, // the last landing: 0 none yet, 1 clean, 2 okay, 3 sketchy
+    pub brake: f32,         // how hard the foot brake is on, 0-1
+    pub dismounts: u32,     // steps off the board while riding (Y)
+    pub bail_checks: [u32; 2], // Skate's wipeout checks behind the last bail, a bit per request number
+    pub bail_first_check: u32, // the one that fired first, or u32::MAX (none: a car hit, say)
+}
+const _: () = assert!(size_of::<SkFeedback>() == 96);
+
+/// Skate 3's score for the host's HUD (see `sk_score`).
+#[repr(C)]
+#[derive(Clone, Copy)]
+pub struct SkScore {
+    pub trick: [u8; 64], // label of the last trick announced (Skate 3 text key), NUL-terminated
+    pub tricks: u32,     // counts announcements
+    pub converts: u32,   // counts announced tricks turning into another (trick holds the new one)
+    pub sequences: u32,  // counts sequences landed (last_reward holds the newest's points)
+    pub bails: u32,      // counts sequences cut short by a bail
+    pub banks: u32,      // counts lines banked into the total
+    pub stance: u32,     // of the last announcement: 1 switch, 2 fakie
+    pub sequence_active: i32,
+    pub sequence: f32,   // the running sequence's points, multiplier included
+    pub line: f32,       // points landed in the current line
+    pub total: f32,      // points of every sequence landed this session
+    pub multiplier: f32,
+    pub line_time: f32,  // the line timer, 1 full down to 0
+    pub last_reward: f32, // points the last landed sequence earned
+    pub banked: f32,     // points the last bank added to the total
+}
+impl Default for SkScore {
+    fn default() -> Self {
+        Self {
+            trick: [0; 64],
+            tricks: 0,
+            converts: 0,
+            sequences: 0,
+            bails: 0,
+            banks: 0,
+            stance: 0,
+            sequence_active: 0,
+            sequence: 0.,
+            line: 0.,
+            total: 0.,
+            multiplier: 1.,
+            line_time: 0.,
+            last_reward: 0.,
+            banked: 0.,
+        }
+    }
+}
+const _: () = assert!(size_of::<SkScore>() == 120);
+
+/// The session marker menu shown while LB is held (see `sk_marker`).
+#[repr(C)]
+#[derive(Clone, Copy, Default)]
+pub struct SkMarker {
+    pub visible: i32,    // LB is held
+    pub can_place: i32,  // LB + D-pad down places a marker here
+    pub can_return: i32, // a marker is set: hold LB + D-pad up to go back to it
+    pub progress: f32,   // 0..1 while holding to go back
+}
+const _: () = assert!(size_of::<SkMarker>() == 16);
+
+/// A pop needs the board leaving the ground at least this fast upward (m/s);
+/// rolling off a ledge isn't one.
+const POP_SPEED: f32 = 1.0;
+
+/// Turns each engine tick's state into the counters of `SkFeedback`/`SkScore`,
+/// so events between two host frames aren't lost.
+#[derive(Default)]
+struct Tracker {
+    feedback: SkFeedback,
+    score: SkScore,
+    fall_speed: f32, // fastest downward board speed since leaving the ground
+    banked: f32,     // Skate's total of completed lines, as last seen
+    checks: u64,     // wipeout checks fired lately (see `SkFeedback::bail_checks`)
+    first_check: u32,
+    quiet: u32,      // steps since a check last fired
+}
+
+impl Tracker {
+    fn tick(&mut self, session: &mut Session, mpu: f32) {
+        // Checks can fire without a bail (one may be ignored while the last
+        // bail's cooldown runs): two quiet seconds forget them.
+        let checks = session.take_wipeout_checks();
+        if checks != 0 {
+            if self.checks == 0 {
+                self.first_check = checks.trailing_zeros();
+            }
+            self.checks |= checks;
+            self.quiet = 0;
+        } else if self.checks != 0 {
+            self.quiet += 1;
+            if self.quiet > 120 {
+                self.checks = 0;
+            }
+        }
+        let f = session.feedback();
+        let s = session.score();
+        let host = |v: [f32; 3]| from_skate(Vec3::from_array(v), mpu).to_array();
+        let riding = |x: u32| (100..=105).contains(&x);
+        let air = |x: u32| (200..=202).contains(&x);
+        let grind = |x: u32| (400..=405).contains(&x);
+        let (was, now) = (self.feedback.state, f.state);
+        let up = f.board_velocity[1];
+        let out = &mut self.feedback;
+        if air(now) {
+            self.fall_speed = self.fall_speed.max(-up);
+        }
+        if (riding(was) || grind(was)) && air(now) && up > POP_SPEED {
+            out.pops += 1;
+            out.pop_speed = up / mpu;
+        }
+        if (air(was) && (riding(now) || grind(now))) || (grind(was) && riding(now)) {
+            out.landings += 1;
+            out.landing_speed = self.fall_speed.max(f.closing_speed) / mpu;
+        }
+        if !grind(was) && grind(now) {
+            out.grinds += 1;
+        }
+        if was != 300 && now == 300 {
+            out.bails += 1;
+            out.bail_speed = Vec3::from_array(f.rider_velocity).length() / mpu;
+            out.bail_checks = [self.checks as u32, (self.checks >> 32) as u32];
+            out.bail_first_check = if self.checks != 0 { self.first_check } else { u32::MAX };
+            self.checks = 0;
+        }
+        if riding(was) && (500..=502).contains(&now) {
+            out.dismounts += 1;
+        }
+        if !air(now) {
+            self.fall_speed = 0.;
+        }
+        out.brake = f.brake;
+        out.state = now;
+        out.wheels = f.wheels;
+        out.board_velocity = host(f.board_velocity);
+        out.board_spin = to_host_axis(f.board_spin);
+        out.rider_velocity = host(f.rider_velocity);
+        if f.landing_grade != 0 {
+            out.landing_grade = f.landing_grade; // only set on the landing's own step: keep it
+        }
+
+        let score = &mut self.score;
+        if s.modified_trick || s.new_trick {
+            score.trick = [0; 64];
+            let name = s.trick.as_bytes();
+            let n = name.len().min(63);
+            score.trick[..n].copy_from_slice(&name[..n]);
+            score.stance = u32::from(s.switch) | u32::from(s.fakie) << 1;
+        }
+        if s.new_trick {
+            score.tricks += 1;
+        }
+        if s.modified_trick {
+            score.converts += 1;
+        }
+        if s.close_tricks {
+            score.bails += 1;
+        } else if score.sequence_active != 0 && !s.sequence_active {
+            score.sequences += 1;
+            score.total += s.last_reward;
+        }
+        if s.total > self.banked + 0.5 {
+            score.banks += 1;
+            score.banked = s.total - self.banked;
+        }
+        self.banked = s.total;
+        score.sequence_active = i32::from(s.sequence_active);
+        score.sequence = s.sequence;
+        score.line = s.line;
+        score.multiplier = s.multiplier;
+        score.line_time = s.line_time;
+        score.last_reward = s.last_reward;
+    }
+
+    /// After a teleport: the state is new, but nothing happened.
+    fn reset_state(&mut self, session: &Session) {
+        self.feedback.state = session.feedback().state;
+        self.fall_speed = 0.;
+    }
+}
+
+/// An axis (angular velocity) from Skate's Y-up space: turned, not scaled.
+fn to_host_axis(v: [f32; 3]) -> [f32; 3] {
+    [v[0], -v[2], v[1]]
+}
+
 struct Worker {
     session: Session,
     transport: ControllerTransport,
     accumulated: f32,
     pending: Option<mpsc::Receiver<Result<Built, String>>>,
     world: SkWorldInfo,
+    track: Tracker,
+    meters_per_unit: f32,
 }
 
 impl Worker {
+    fn advance(&mut self) -> Result<(), String> {
+        self.session.advance()?;
+        self.track.tick(&mut self.session, self.meters_per_unit);
+        Ok(())
+    }
+
     fn install(&mut self, (generation, prepared, info): Built) -> Result<(), String> {
         if generation <= self.world.generation {
             return Ok(()); // a newer world is already in
@@ -210,17 +424,28 @@ const RAIL_UNITS_PER_METER: f32 = 1.0 / 0.0254;
 /// Finds rails in host-space triangles and builds Skate collision from both.
 fn prepare_world(builder: CollisionBuilder, host: Vec<[[f32; 3]; 3]>, meters_per_unit: f32, generation: u32) -> Result<Built, String> {
     let started = std::time::Instant::now();
+    // San Andreas' rough seams and wobbly rails evened out first (smooth.rs);
+    // SK_SMOOTH=0 in the environment turns it off, for comparing.
+    let mut host: Vec<[Vec3; 3]> = host.iter().map(|t| t.map(Vec3::from_array)).collect();
+    let smoothing = tuned("SMOOTH", 1.0) != 0.0;
+    let mut report = smooth::Report::default();
+    if smoothing {
+        smooth::weld(&mut host, 1.0 / meters_per_unit, &mut report);
+    }
+    smooth::drop_copies(&mut host, 1.0 / meters_per_unit);
     let to_rail_units = meters_per_unit * RAIL_UNITS_PER_METER;
-    let rail_space: Vec<[Vec3; 3]> = host.iter().map(|t| t.map(|p| Vec3::from_array(p) * to_rail_units)).collect();
+    let rail_space: Vec<[Vec3; 3]> = host.iter().map(|t| t.map(|p| p * to_rail_units)).collect();
     let (found, _) = rails::find(&rail_space);
-    let rails: Vec<Vec<[f32; 3]>> = found
-        .iter()
-        .map(|rail| rail.iter().map(|p| to_skate(*p / to_rail_units, meters_per_unit).to_array()).collect())
-        .collect();
+    let mut found: Vec<Vec<Vec3>> = found.into_iter().map(|rail| rail.into_iter().map(|p| p / to_rail_units).collect()).collect();
+    if smoothing {
+        found = smooth::smooth_rails(found, 1.0 / meters_per_unit, &mut report);
+    }
+    let rails: Vec<Vec<[f32; 3]>> =
+        found.iter().map(|rail| rail.iter().map(|p| to_skate(*p, meters_per_unit).to_array()).collect()).collect();
     let tris: Vec<[[f32; 3]; 3]> = host
         .iter()
         .filter_map(|t| {
-            let p = t.map(|v| to_skate(Vec3::from_array(v), meters_per_unit));
+            let p = t.map(|v| to_skate(v, meters_per_unit));
             let area = (p[1] - p[0]).cross(p[2] - p[0]).length_squared();
             (area > 1e-12).then(|| p.map(|v| v.to_array()))
         })
@@ -529,6 +754,8 @@ unsafe fn create(
                             accumulated: 0.,
                             pending: None,
                             world: SkWorldInfo::default(),
+                            track: Tracker::default(),
+                            meters_per_unit,
                         };
                         run(worker, inbox);
                     }
@@ -1457,7 +1684,9 @@ pub unsafe extern "C" fn sk_activate(session: *mut SkSession, position: *const f
         let heading = yaw + std::f32::consts::FRAC_PI_2;
         let pose = s.call(move |w| {
             w.accumulated = 0.;
-            w.session.activate(spawn, heading)
+            let pose = w.session.activate(spawn, heading)?;
+            w.track.reset_state(&w.session);
+            Ok(pose)
         })?;
         s.store(pose)?;
         Ok(0)
@@ -1543,7 +1772,7 @@ pub unsafe extern "C" fn sk_update(session: *mut SkSession, dt: f32) -> c_int {
                     return Err(format!("the skate engine reported a step period of {period}"));
                 }
                 w.accumulated -= period;
-                w.session.advance()?;
+                w.advance()?;
                 steps += 1;
             }
             Ok((steps, controller, (steps > 0).then(|| w.session.pose())))
@@ -1567,11 +1796,59 @@ pub unsafe extern "C" fn sk_step(session: *mut SkSession, controls: *const SkCon
         let pose = s.call(move |w| {
             w.install_built()?;
             let input = Controls { buttons: c.buttons, triggers: c.triggers, left: c.left, right: c.right };
+            w.session.collect_marker_time(1. / 60.); // one fixed step of the marker's hold timer
             w.session.tick(input)?;
+            w.track.tick(&mut w.session, w.meters_per_unit);
             Ok(w.session.pose())
         })?;
         s.store(pose)?;
         Ok(1)
+    })();
+    report(done, -1)
+}
+
+/// Changes the physics difficulty ("easy", "normal" or "hardcore") right
+/// away, keeping the board, the trick under way and the equipment.
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn sk_set_difficulty(session: *mut SkSession, difficulty: *const c_char) -> c_int {
+    let done = (|| -> Result<c_int, String> {
+        let s = unsafe { handle(session) }?;
+        let name = unsafe { optional_name(difficulty) }.ok_or("difficulty is null")?;
+        s.call(move |w| w.session.set_difficulty(&name))?;
+        Ok(0)
+    })();
+    report(done, -1)
+}
+
+/// Skate 3's camera option: nonzero for Low (the older games' "OG" camera),
+/// zero for High (Skate 3's default).
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn sk_set_camera(session: *mut SkSession, low: c_int) -> c_int {
+    let done = (|| -> Result<c_int, String> {
+        let s = unsafe { handle(session) }?;
+        s.call(move |w| {
+            w.session.set_camera_low(low != 0);
+            Ok(())
+        })?;
+        Ok(0)
+    })();
+    report(done, -1)
+}
+
+/// Skate 3's truck tightness: 0 loosest to 1 tightest (Skate 3's own default
+/// is 0.7). Applies on the next engine step.
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn sk_set_trucks(session: *mut SkSession, tightness: f32) -> c_int {
+    let done = (|| -> Result<c_int, String> {
+        let s = unsafe { handle(session) }?;
+        if !tightness.is_finite() {
+            return Err("tightness must be a number".into());
+        }
+        s.call(move |w| {
+            w.session.set_truck_tightness(tightness.clamp(0.0, 1.0));
+            Ok(())
+        })?;
+        Ok(0)
     })();
     report(done, -1)
 }
@@ -1674,6 +1951,51 @@ pub unsafe extern "C" fn sk_state(session: *mut SkSession) -> *const c_char {
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn sk_controller(session: *mut SkSession) -> c_int {
     unsafe { session.as_ref() }.map_or(-1, |s| s.controller)
+}
+
+/// The skater's state for skateboard sounds, as of the last engine step
+/// (velocities in host units per second, host space).
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn sk_feedback(session: *mut SkSession, out: *mut SkFeedback) -> c_int {
+    let done = (|| -> Result<c_int, String> {
+        let s = unsafe { handle(session) }?;
+        let out = unsafe { out.as_mut() }.ok_or("out is null")?;
+        *out = s.call(|w| Ok(w.track.feedback))?;
+        Ok(0)
+    })();
+    report(done, -1)
+}
+
+/// Skate 3's own trick recognition and scoring (lines, multiplier, totals).
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn sk_score(session: *mut SkSession, out: *mut SkScore) -> c_int {
+    let done = (|| -> Result<c_int, String> {
+        let s = unsafe { handle(session) }?;
+        let out = unsafe { out.as_mut() }.ok_or("out is null")?;
+        *out = s.call(|w| Ok(w.track.score))?;
+        Ok(0)
+    })();
+    report(done, -1)
+}
+
+/// The session marker menu (shown while LB is held).
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn sk_marker(session: *mut SkSession, out: *mut SkMarker) -> c_int {
+    let done = (|| -> Result<c_int, String> {
+        let s = unsafe { handle(session) }?;
+        let out = unsafe { out.as_mut() }.ok_or("out is null")?;
+        *out = s.call(|w| {
+            let m = w.session.marker();
+            Ok(SkMarker {
+                visible: c_int::from(m.visible),
+                can_place: c_int::from(m.can_place),
+                can_return: c_int::from(m.can_return),
+                progress: m.progress,
+            })
+        })?;
+        Ok(0)
+    })();
+    report(done, -1)
 }
 
 /// Why the last failing call on this thread failed.

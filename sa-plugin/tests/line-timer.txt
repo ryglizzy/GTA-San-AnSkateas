@@ -1,0 +1,33 @@
+# A long combo (flips joined by manuals) to raise Skate's multiplier, so the
+# line timer bar shows; the line's amount must stay until the bar empties.
+load 2
+place 2050 -2494 13.6 90
+clock 12 0
+weather 1
+wait 90
+skate
+pad 120 A
+idle 20
+pad 30 rs=0,-1
+pad 3 rs=-1,0.5
+idle 22
+pad 50 rs=0,-0.45
+pad 20 rs=0,-1
+pad 3 rs=-1,0.5
+idle 22
+pad 50 rs=0,-0.45
+pad 20 rs=0,-1
+pad 3 rs=1,0.5
+idle 22
+pad 50 rs=0,-0.45
+pad 20 rs=0,-1
+pad 3 rs=-1,0.5
+idle 60
+screen line-1
+idle 60
+screen line-2
+idle 120
+screen line-3
+idle 240
+screen line-4
+quit

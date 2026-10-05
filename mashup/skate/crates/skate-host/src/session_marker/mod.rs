@@ -38,6 +38,12 @@ impl Runtime {
     pub fn advance(&mut self,input:&ControllerInput,physics:&GamePhysics,skater:&mut SkaterRuntime) {
         update(&mut self.session,input,physics,skater,&self.validation);
     }
+    /// SanAnskateas addition: the marker menu a host draws while LB is held:
+    /// (shown, a marker can be placed here, one can be returned to, return hold progress).
+    pub fn view(&self) -> (bool, bool, bool, f32) {
+        let s = &self.session;
+        (s.visible, s.can_place, s.can_return, s.progress)
+    }
 }
 fn update(session:&mut SessionMarker,input:&ControllerInput,physics:&GamePhysics,skater:&mut SkaterRuntime,validation:&validation::Validation) {
     let (modifier, set, held) = input.session_marker_actions();

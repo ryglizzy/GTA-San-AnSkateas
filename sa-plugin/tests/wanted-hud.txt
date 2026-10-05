@@ -1,0 +1,17 @@
+# The SCORE under GTA's money must move below the wanted stars while CJ is
+# wanted, and come back up once he isn't.
+load 2
+place 2050 -2494 13.6 90
+clock 12 0
+weather 1
+wait 90
+skate
+idle 30
+screen not-wanted
+wanted 4
+idle 60
+screen wanted
+wanted 0
+idle 60
+screen wanted-cleared
+quit

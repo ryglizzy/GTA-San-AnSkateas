@@ -13,3 +13,9 @@ skate-data/
 *.xex
 *.iso
 plugin-sdk.unzip/
+release/vgmstream/
+
+# Local only: collision dumps, the sound picker, editor settings
+test-worlds/
+sound-picker/
+.claude/

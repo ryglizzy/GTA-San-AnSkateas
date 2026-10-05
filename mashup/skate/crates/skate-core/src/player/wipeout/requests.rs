@@ -1,4 +1,12 @@
 //! Original request arrays20/56,count200,mode208 and timers192/196/204.
+
+/// SanAnskateas addition: with SK_TRACE_WIPEOUT set, wipeout requests and the
+/// grind checks behind them are printed (offline checks only).
+pub fn trace() -> bool {
+    static ON: std::sync::OnceLock<bool> = std::sync::OnceLock::new();
+    *ON.get_or_init(|| std::env::var_os("SK_TRACE_WIPEOUT").is_some())
+}
+
 #[derive(Clone, Debug, PartialEq)]
 pub struct Requests {
     pub reasons: [bool; 34],
@@ -8,6 +16,10 @@ pub struct Requests {
     pub contact_frames: i32,
     pub balance: f32,
     pub mode: u32,
+    /// SanAnskateas addition: every check that asked for a wipeout (a bit
+    /// per request number) since the host last took them, which the engine
+    /// itself never clears, for the host's bail log.
+    pub seen: u64,
 }
 impl Requests {
     ///Player ctor82DB20B8..D8 and first ClearRequests initialize this storage.
@@ -20,6 +32,7 @@ impl Requests {
             contact_frames: 0,
             balance: 0.0,
             mode: 0,
+            seen: 0,
         }
     }
     ///Player initialization82DB3024 supplies the short initial grace period.
@@ -39,9 +52,13 @@ impl Requests {
     }
     ///A repeated request increments the original counter even if its bit was set.
     pub fn request(&mut self, index: usize, value: f32) {
+        if trace() {
+            eprintln!("wipeout request {index} ({value})");
+        }
         self.reasons[index] = true;
         self.values[index] = value;
         self.count = self.count.wrapping_add(1);
+        self.seen |= 1 << index;
     }
     ///SystemLogic82DB6000 after state selection: preserve cooldown and histories.
     pub fn clear_after_selection(&mut self) {

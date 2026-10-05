@@ -112,6 +112,9 @@ pub(crate) struct GamePhysics {
     /// Toolkit ctor82C0680C clears8384bit7; wipeout entry/exit owns changes.
     pub board_wiping_out: bool,
     pub trainer: crate::tuning::TrainerTuning,
+    /// SanAnskateas addition: Skate 3's camera option, the stock graph's
+    /// camera type (0 = Low, the older games' "OG" camera; 1 = High).
+    pub camera_type: u32,
 }
 
 /// Cross-phase records for the current fixed tick. Subsystems retain their
@@ -341,7 +344,17 @@ impl GamePhysics {
             processed_flags_2468,
             board_wiping_out: false,
             trainer: Default::default(),
+            camera_type: 1,
         })
+    }
+    /// SanAnskateas addition: the truck tightness preference alone (0 loose
+    /// to 1 tight), keeping the wheel hardness.
+    pub(crate) fn set_truck_tightness(&mut self, truck: f32) {
+        let wheel = self.animation_profile.wheel_hardness;
+        self.set_equipment_preferences(truck, wheel);
+    }
+    pub(crate) fn truck_tightness(&self) -> f32 {
+        self.animation_profile.truck_tightness
     }
 
     /// The material new collision is built with.

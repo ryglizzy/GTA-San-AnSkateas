@@ -19,6 +19,13 @@ pub struct Settings {
 
 pub fn check(state: &mut Requests, settings: Settings, frame: &Frame) {
     state.mode = 5; // Preserve balance, timers and existing requests.
+    if crate::player::wipeout::trace() {
+        let pose = dot3(frame.pose_error, frame.pose_error).sqrt();
+        if pose > settings.max_displacement_208 || regional_force(frame, settings.max_body_contact_168, settings.max_arm_contact_164) {
+            eprintln!("grind pose error {pose:.3} (limit {:.3}), regions {:?} (body limit {:.1}, arms {:.1})",
+                settings.max_displacement_208, frame.regions_force, settings.max_body_contact_168, settings.max_arm_contact_164);
+        }
+    }
     if dot3(frame.pose_error, frame.pose_error)
         > settings.max_displacement_208 * settings.max_displacement_208
     {
@@ -36,6 +43,10 @@ pub fn check(state: &mut Requests, settings: Settings, frame: &Frame) {
         let square = dot3([local[0], 0.0, local[2], local[3]],
             [local[0], 0.0, local[2], local[3]]);
         let length = if square == 0.0 { 0.0 } else { square * inverse_length_squared(square, 2) };
+        if crate::player::wipeout::trace() && (length > settings.xz_acceleration_204 || local[1].abs() > 100.0) {
+            eprintln!("grind board contact: closing xz {length:.2} (limit {:.2}), y {:.2} (limit 100), normal {:?}",
+                settings.xz_acceleration_204, local[1], frame.board_contact_normal);
+        }
         if length > settings.xz_acceleration_204 || local[1].abs() > 100.0 {
             state.request(2, 0.0);
             if regional_force(frame, 1.0, 20.0) { state.request(0, 0.0); }

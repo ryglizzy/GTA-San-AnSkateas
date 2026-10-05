@@ -35,6 +35,12 @@ struct SkateApi {
     decltype(&sk_bone_name) bone_name = nullptr;
     decltype(&sk_state) state = nullptr;
     decltype(&sk_controller) controller = nullptr;
+    decltype(&sk_feedback) feedback = nullptr;
+    decltype(&sk_score) score = nullptr;
+    decltype(&sk_marker) marker = nullptr;
+    decltype(&sk_set_difficulty) set_difficulty = nullptr;
+    decltype(&sk_set_camera) set_camera = nullptr;
+    decltype(&sk_set_trucks) set_trucks = nullptr;
     decltype(&sk_last_error) last_error = nullptr;
 
     // Returns an empty string on success, otherwise what went wrong.
@@ -74,6 +80,12 @@ struct SkateApi {
         bind(bone_name, "sk_bone_name");
         bind(state, "sk_state");
         bind(controller, "sk_controller");
+        bind(feedback, "sk_feedback");
+        bind(score, "sk_score");
+        bind(marker, "sk_marker");
+        bind(set_difficulty, "sk_set_difficulty");
+        bind(set_camera, "sk_set_camera");
+        bind(set_trucks, "sk_set_trucks");
         bind(last_error, "sk_last_error");
         if (!missing.empty()) {
             return "skate_ffi.dll is missing functions (wrong version?): " + missing;

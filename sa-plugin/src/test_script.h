@@ -24,6 +24,10 @@
 //                             aim=24 looks at that SA bone instead (24/34: right/left hand)
 //   env SK_HELPER 0.5         set an environment variable (skate_ffi reads
 //                             SK_* rig constants from them each frame)
+//   screen name               photograph the whole screen as the player sees
+//                             it, HUD included (Skate's camera, nothing frozen)
+//   radio sk8fm|off|7         tune the skate radio (7: a GTA station number),
+//                             as LB + D-pad left/right does
 //   quit
 #pragma once
 
@@ -35,7 +39,7 @@
 #include <vector>
 
 struct TestCommand {
-    enum class Kind { Load, Place, Clock, Weather, Tuning, Wait, Skate, Unskate, Restart, Respawn, Car, Pad, Shoot, Env, Quit };
+    enum class Kind { Load, Place, Clock, Weather, Tuning, Wait, Skate, Unskate, Restart, Respawn, Car, Pad, Shoot, Screen, Radio, Env, Find, DumpWorld, Wanted, MenuTour, Quit };
     Kind kind = Kind::Quit;
     int line = 0;
     int count = 0;       // Load: slot; Wait: frames; Pad: engine steps
@@ -180,6 +184,27 @@ inline bool ParseTestScript(const std::string& text, std::vector<TestCommand>& o
                     return fail("unknown pad input '" + t + "'");
                 }
             }
+        } else if (verb == "screen") {
+            c.kind = Kind::Screen;
+            if (w.size() != 2) return fail("screen takes a name");
+            c.name = w[1];
+        } else if (verb == "menutour") {
+            c.kind = Kind::MenuTour;
+            if (w.size() != 1) return fail("menutour takes nothing");
+        } else if (verb == "wanted") {
+            c.kind = Kind::Wanted;
+            if (!args(1) || c.args[0] < 0.f || c.args[0] > 6.f || c.args[0] != std::floor(c.args[0])) return fail("wanted takes a level, 0-6");
+        } else if (verb == "find" || verb == "dumpworld") {
+            c.kind = verb == "find" ? Kind::Find : Kind::DumpWorld;
+            if (w.size() != 2) return fail(verb + " takes a name");
+            c.name = w[1];
+        } else if (verb == "radio") {
+            c.kind = Kind::Radio;
+            float station = 0.f;
+            if (w.size() != 2 || (w[1] != "sk8fm" && w[1] != "off" && !(Number(w[1], station) && station >= 1.f && station <= 12.f))) {
+                return fail("radio takes sk8fm, off or a GTA station number (1-12)");
+            }
+            c.name = w[1];
         } else if (verb == "shoot") {
             c.kind = Kind::Shoot;
             if (w.size() < 2 || w[1].find('=') != std::string::npos) return fail("shoot takes a name first");

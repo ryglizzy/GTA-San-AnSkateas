@@ -1,0 +1,24 @@
+# Saves the collision a skater would get at a few places, for the offline
+# surface-smoothing checks (skate-ffi smooth tests): Lombard (Windy Windy
+# Windy Windy Street, Calton Heights), a plain Calton Heights street,
+# Pershing Square (Los Santos ledges and stairs) and the flat LS runway.
+load 2
+clock 12 0
+weather 1
+place -2075 931 75 0
+wait 250
+dumpworld lombard
+screen lombard
+place -2120 1060 80 0
+wait 250
+dumpworld calton
+screen calton
+place 1480 -1660 20 0
+wait 250
+dumpworld pershing
+screen pershing
+place 2050 -2494 13.6 90
+wait 250
+dumpworld runway
+screen runway
+quit

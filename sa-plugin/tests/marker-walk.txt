@@ -1,0 +1,26 @@
+# Session marker set while walking (off the board): returning to it must
+# face the way CJ faced when it was set. The log's "skater at ... facing"
+# lines after each photo give the heading.
+load 2
+place 2050 -2494 13.6 90
+clock 12 0
+weather 1
+wait 90
+skate
+idle 30
+pad 10 Y
+idle 90
+pad 60 ls=0.7,0.7
+idle 40
+screen walk-set
+pad 10 LB
+pad 10 LB DOWN
+pad 10 LB
+idle 30
+pad 90 ls=-0.7,-0.7
+idle 30
+screen walk-away
+pad 150 LB UP
+idle 90
+screen walk-returned
+quit

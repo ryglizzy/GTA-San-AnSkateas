@@ -57,7 +57,7 @@ pub(crate) fn advance(
     )?;
     let snapshot = crate::camera::publish_camera_subject(physics, skater, &inputs)?;
     let environment = crate::camera::CameraGraphEnvironment {
-        camera_type: 1,
+        camera_type: physics.camera_type, // SanAnskateas addition: was always 1 (High)
         on_road: false,
         ledge_left: false,
         ledge_right: false,

@@ -99,6 +99,66 @@ pub(crate) fn validate_runtime(map: &SkateMap) -> Result<(), String> {
     Ok(())
 }
 
+/// SanAnskateas addition: how far a vertex must stand out past all its
+/// neighbours (the sine of the angle, about 8 degrees: a bend of up to 16
+/// degrees in a ledge is no corner) to keep contacts of its own when the map
+/// has no native edge data.
+const CORNER_SINE: f32 = 0.14;
+
+/// SanAnskateas addition: SK_CORNERS=0 in the environment turns the
+/// straight-run test off, for comparing.
+fn straight_runs_smooth() -> bool {
+    static ON: std::sync::OnceLock<bool> = std::sync::OnceLock::new();
+    *ON.get_or_init(|| std::env::var("SK_CORNERS").map_or(true, |v| v.trim() != "0"))
+}
+
+/// SanAnskateas addition: whether a vertex sticks out past its neighbours by
+/// more than `limit`, given the unit directions to them. That is how far the
+/// origin lies from their convex hull (zero when the neighbours surround the
+/// vertex, as along a straight edge). Frank-Wolfe steps toward the hull's
+/// point nearest the origin stop once the answer is certain either way; an
+/// undecided vertex stays a corner, as before this test.
+fn sticks_out(directions: &[Vec3], limit: f32) -> bool {
+    let Some(&first) = directions.first() else {
+        return true;
+    };
+    // The usual case, decided exactly: two edges running on nearly straight
+    // through the vertex (a ledge's corner edge, gently bent or not). Their
+    // midpoint is a hull point cos(half the angle between them) away.
+    for (i, a) in directions.iter().enumerate() {
+        for b in &directions[i + 1..] {
+            if ((*a + *b) * 0.5).length() <= limit {
+                return false;
+            }
+        }
+    }
+    let mut p = first;
+    for _ in 0..256 {
+        let length = p.length();
+        if length <= limit {
+            return false; // a hull point this near: the vertex is surrounded
+        }
+        let d = p / length;
+        // Every hull point x has x·d at least the smallest u·d: a lower
+        // bound on the distance.
+        let (s, low) = directions
+            .iter()
+            .map(|&u| (u, u.dot(d)))
+            .min_by(|a, b| a.1.total_cmp(&b.1))
+            .unwrap();
+        if low > limit {
+            return true;
+        }
+        let step = p - s;
+        let squared = step.length_squared();
+        if squared < 1e-12 {
+            break;
+        }
+        p -= step * (p.dot(step) / squared).clamp(0., 1.);
+    }
+    true
+}
+
 /// TU3 ClusteredMesh::GetUnitVolumes (82AC8A68): fdivs then fsubs,
 /// using the pi-squared word at 822F88D0. This is not acos/angle decoding.
 /// Bit 7 denotes an unmatched compiler edge and is not a triangle flag.
@@ -293,12 +353,36 @@ pub(crate) fn collision_world(
                 adjacent[v].push(i);
             }
         }
+        // SanAnskateas addition: the 1-ring of every vertex, for the corner
+        // test below.
+        let mut ring = vec![Vec::<usize>::new(); positions.len()];
+        for ids in &vertices {
+            for k in 0..3 {
+                let (a, b) = (ids[k], ids[(k + 1) % 3]);
+                if a != b && !ring[a].contains(&b) {
+                    ring[a].push(b);
+                    ring[b].push(a);
+                }
+            }
+        }
         for (v, faces) in adjacent.iter().enumerate() {
             let reference = normals[faces[0]];
-            if faces
+            let flat = faces
                 .iter()
-                .all(|&i| (reference.dot(normals[i]) - 1.).abs() <= 0.01)
-            {
+                .all(|&i| (reference.dot(normals[i]) - 1.).abs() <= 0.01);
+            // SanAnskateas addition: a vertex in a straight run of edges (where
+            // two collision pieces of a ledge meet, a T-junction) is no corner
+            // either. With its own contacts on, a board sliding along the edge
+            // met it like a wall facing it, and fast grinds bailed at every
+            // join of a GTA ledge. Real corners keep theirs.
+            let smooth = flat || straight_runs_smooth() && {
+                let directions: Vec<Vec3> = ring[v]
+                    .iter()
+                    .filter_map(|&n| (positions[n] - positions[v]).try_normalize())
+                    .collect();
+                !sticks_out(&directions, CORNER_SINE)
+            };
+            if smooth {
                 for &i in faces {
                     for corner in 0..3 {
                         if vertices[i][corner] == v {

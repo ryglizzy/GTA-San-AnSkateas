@@ -125,6 +125,8 @@ pub(super) fn advance(
     } else {
         player_state::post_input_and_select(physics, skater)?;
     }
+    // SanAnskateas addition: a host car's hit, once its bail has begun.
+    player_state::advance_knock(physics, skater);
     let state_after_selection = skater.player_state.current();
     super::offboard_audit_trace::stage(tick, "selected", physics, skater, controls);
     #[cfg(test)]
@@ -263,6 +265,12 @@ pub(super) fn advance(
         [up.x, up.y, up.z, 0.0],
         &skater.trajectory.selector,
     )?;
+    // SanAnskateas addition: a host car's hit files Skate's own vehicle-contact
+    // wipeout request where the state checks file theirs (filed between ticks
+    // it would be cleared unread), so an ordinary bail follows.
+    if skater.wipeout_state.knock.is_some() {
+        skater.wipeout.state.request(7, 0.0);
+    }
     player_state::publish(physics, skater)?;
     skater
         .grind_camera

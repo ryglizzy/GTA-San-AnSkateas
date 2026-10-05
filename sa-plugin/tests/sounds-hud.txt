@@ -1,0 +1,48 @@
+# The score HUD, the LB session-marker menu, the skate radio and the
+# skateboard sounds (the log lists each sound and every ground texture met).
+load 2
+place 2050 -2494 13.6 90
+clock 12 0
+weather 1
+wait 90
+skate
+wait 2
+screen radio-name
+idle 60
+pad 90 A
+idle 30
+pad 30 rs=0,-1
+pad 3 rs=-1,0.5
+idle 16
+screen trick-air
+idle 40
+screen landed
+pad 20 LB
+screen marker-menu
+pad 6 LB DOWN
+pad 20 LB
+screen marker-set
+idle 60
+unskate
+# Grove Street: the road and the sidewalk.
+place 2490 -1666 ground 90
+wait 60
+skate
+pad 60 A
+idle 90
+unskate
+# Pershing Square's paths and plaza.
+place 1479 -1653 ground 0
+wait 60
+skate
+pad 60 A
+idle 90
+unskate
+# Glen Park's grass.
+place 1990 -1180 ground 0
+wait 60
+skate
+pad 60 A
+idle 90
+screen grass
+quit
