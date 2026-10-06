@@ -10,7 +10,7 @@ tricks, grinds and bails.
 **No game files are included.** The setup builds what the mod needs from your
 own copies of both games.
 
-## Download and install
+## Download and install (Rockstar Launcher version does not boot. If you own that copy, and have the ability, please troubleshoot and get back to me.)
 
 1. **Get GTA San Andreas ready (one time).** The mod needs the classic PC game
    (not the Definitive Edition) at version 1.0 US with an ASI Loader. Download
